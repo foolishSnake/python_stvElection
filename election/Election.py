@@ -1,5 +1,6 @@
 from Constituency import Constituency
 from FileAccess import FileAccess
+import datetime as time
 
 class Election:
 
@@ -40,7 +41,7 @@ for i in election.constituency:
     print("Expenses Quota = " + str(i.expenses_quota))
 
 for l in election.constituency:
-    l.first_count()
+    print(l.first_count())
 
 for k in election.constituency:
     print(k.name)
@@ -55,3 +56,5 @@ for m in election.constituency:
 
 for n in election.constituency:
     n.print_elected()
+
+print(time.datetime.now())

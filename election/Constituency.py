@@ -1,4 +1,5 @@
 from Candidate import *
+import datetime as time
 
 class Constituency:
 
@@ -22,12 +23,12 @@ class Constituency:
         :return: String
         """
         if len(self.ballot) == 0:
-            return "There sre no votes in the ballot."
+            return "There sre no votes in the ballot @ {}".format(time.datetime.now())
         else:
             self.quota = int((len(self.ballot) / (self.num_seats + 1)) + 1)
             self.expenses_quota = int(self.quota / 4)
 
-        return "Quota and expenses quota calculated."
+        return "Quota and expenses quota calculated @ {}".format(time.datetime.now())
 
     def first_count(self):
         for vote in self.ballot:
@@ -35,7 +36,7 @@ class Constituency:
                 if i == 1:
                     self.candidates[index].first_votes.append(vote.copy())
 
-        return 0
+        return "First count complete for {} @ {}".format(self.name, time.datetime.now())
 
     def print_first(self):
         """
