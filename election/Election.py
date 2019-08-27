@@ -30,26 +30,22 @@ json = ["DublinNorth2002.json", "DublinWest2002.json", "Meath2002.json"]
 election = Election("General", {"Day": 17, "Month": 5, "Year": 2002})
 
 election.read_josn(json)
-print(len(election.constituency))
+
 for j in election.constituency:
     j.set_quota()
 
 for i in election.constituency:
-    print(i.name)
-    print(len(i.ballot))
-    print("Quota = " + str(i.quota))
-    print("Expenses Quota = " + str(i.expenses_quota))
+    print(i.name + ", Total Ballot = " + str(len(i.ballot)))
+    print("Quota = " + str(i.quota) + ", Expenses Quota = " + str(i.expenses_quota) + "\n")
 
 for l in election.constituency:
-    print(l.first_count())
+    l.first_count()
 
 for k in election.constituency:
     print(k.name)
     k.print_first()
     print("\n")
 
-for o in election.constituency:
-    o.set_num_votes()
 
 for m in election.constituency:
     m.check_elected()

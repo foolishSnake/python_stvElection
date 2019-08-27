@@ -16,4 +16,5 @@ class Candidate:
         self.last_transfer = []
         self.available_surplus = 0
         self.num_votes = 0
+        self.votes_per_count = []
 

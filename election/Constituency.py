@@ -13,6 +13,7 @@ class Constituency:
         self.num_seats = 0
         self.candidates = []
         self.ballot = []
+        self.count = 0
 
 
     # def read_ballot(self):
@@ -31,6 +32,7 @@ class Constituency:
         return "Quota and expenses quota calculated @ {}".format(time.datetime.now())
 
     def first_count(self):
+        self.count += 1
         for vote in self.ballot:
             for index, i in enumerate(vote):
                 if i == 1:
@@ -64,6 +66,3 @@ class Constituency:
         for i in self.candidates:
             print(i.name + " " + str(i.elected) + " " + str(i.return_expenses))
 
-    def set_num_votes(self):
-        for i in self.candidates:
-            i.num_votes = len(i.first_votes)
