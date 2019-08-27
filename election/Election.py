@@ -53,4 +53,7 @@ for m in election.constituency:
 for n in election.constituency:
     n.print_elected()
 
-print(time.datetime.now())
+print("Test the num_votes in candidate")
+for o in election.constituency:
+    for p in o.candidates:
+        print(p.name + " Number of votes " + str(p.num_votes))

@@ -38,7 +38,11 @@ class Constituency:
                 if i == 1:
                     self.candidates[index].first_votes.append(vote.copy())
 
+        for j in self.candidates:
+            j.votes_per_count.append(len(j.first_votes))
+
         return "First count complete for {} @ {}".format(self.name, time.datetime.now())
+
 
     def print_first(self):
         """
@@ -47,7 +51,6 @@ class Constituency:
         """
         for i in self.candidates:
             print(i.name + " " + str(len(i.first_votes)))
-
 
     def check_elected(self):
         for i in self.candidates:
