@@ -20,14 +20,10 @@ class Candidate:
 
     @property
     def num_votes(self):
-        votes = 0
+        votes: int = 0
         for i in self.votes_per_count:
             votes += i
         return votes
-
-
-
-
 # cand = Candidate("Marl", "Bob Marley", "Rasta")
 #
 #
@@ -35,5 +31,3 @@ class Candidate:
 # print(cand.num_votes)
 # cand.votes_per_count.append(-20)
 # print(cand.num_votes)
-
-

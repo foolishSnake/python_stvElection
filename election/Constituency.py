@@ -13,6 +13,8 @@ class Constituency:
         self.num_seats = 0
         self.candidates = []
         self.ballot = []
+        self.elected_cand = []
+        self.eliminated_cand = []
         self.count = 0
 
 
@@ -57,6 +59,7 @@ class Constituency:
             if i.num_votes >= self.quota:
                 i.elected = True
                 i.return_expenses = True
+                self.elected_cand.apped[i]
             else:
                 if i.num_votes >= self.expenses_quota:
                     i.return_expenses = True
@@ -68,4 +71,37 @@ class Constituency:
         """
         for i in self.candidates:
             print(i.name + " " + str(i.elected) + " " + str(i.return_expenses))
+
+    def number_transfers(self):
+        for i in self.candidates:
+            if i.elected:
+                return len(i.first_votes) - self.quota
+            else:
+                return 0
+
+    def surplus_votes(self, votes, surplus):
+        cand_index = []
+        transfers = [0] * len(self.candidates)
+        available_transfers: int = 0
+        for index, i in enumerate(cand):
+            if i not in self.elected_cand and i not in self.eliminated_cand:
+                cand_index.append(index)
+        for i in votes:
+            low = 100
+            index = 0
+            for j in cand_index:
+                if i[j] < low:
+                    low = i[j]
+                    index = j
+            transfers[index] += 1
+
+        for i in transfers:
+            available_transfers += i
+
+
+
+
+
+
+
 
