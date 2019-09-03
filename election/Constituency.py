@@ -83,6 +83,7 @@ class Constituency:
         cand_index = []
         transfers = [0] * len(self.candidates)
         available_transfers: int = 0
+        precentage_transfer = [0] * len(self.candidates)
         for index, i in enumerate(cand):
             if i not in self.elected_cand and i not in self.eliminated_cand:
                 cand_index.append(index)
@@ -95,8 +96,13 @@ class Constituency:
                     index = j
             transfers[index] += 1
 
-        for i in transfers:
-            available_transfers += i
+        for index, i in enumerate(transfers):
+            if i == 0:
+                precentage_transfer[index] = 0
+            else:
+                precentage_transfer[index] = i / (len(votes) / 100)
+
+
 
 
 
