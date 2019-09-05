@@ -59,7 +59,7 @@ class Constituency:
             if i.num_votes >= self.quota:
                 i.elected = True
                 i.return_expenses = True
-                self.elected_cand.apped[i]
+                self.elected_cand.append[i]
             else:
                 if i.num_votes >= self.expenses_quota:
                     i.return_expenses = True
@@ -79,35 +79,16 @@ class Constituency:
             else:
                 return 0
 
-    def surplus_votes(self, votes, surplus):
+    def unelected(self):
         cand_index = []
-        transfers = [0] * len(self.candidates)
-        available_transfers: int = 0
-        precentage_transfer = [0] * len(self.candidates)
-        for index, i in enumerate(cand):
-            if i not in self.elected_cand and i not in self.eliminated_cand:
+        for index, i in self.candidate:
+            if not i.elected and not i.excluded:
                 cand_index.append(index)
-        for i in votes:
-            low = 100
-            index = 0
-            for j in cand_index:
-                if i[j] < low:
-                    low = i[j]
-                    index = j
-            transfers[index] += 1
+        return cand_index
 
-        for index, i in enumerate(transfers):
-            if i == 0:
-                precentage_transfer[index] = 0
-            else:
-                precentage_transfer[index] = i / (len(votes) / 100)
-
-
-
-
-
-
-
-
-
-
+    def transfers(self):
+        for i in self.candidates:
+            if self.count == 1:
+                if i.elected and len(i.first_votes) > self.quota:
+                    return i.first_vote
+        return None
