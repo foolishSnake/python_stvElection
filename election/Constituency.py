@@ -55,14 +55,16 @@ class Constituency:
             print(i.name + " " + str(len(i.first_votes)))
 
     def check_elected(self):
+
         for i in self.candidates:
-            if i.num_votes >= self.quota:
-                i.elected = True
-                i.return_expenses = True
-                self.elected_cand.append[i]
-            else:
-                if i.num_votes >= self.expenses_quota:
+            if i not in self.elected_cand:
+                if i.num_votes >= self.quota:
+                    i.elected = True
                     i.return_expenses = True
+                    self.elected_cand.append(i)
+                else:
+                    if i.num_votes >= self.expenses_quota:
+                        i.return_expenses = True
 
     def print_elected(self):
         """

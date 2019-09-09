@@ -57,3 +57,8 @@ print("Test the num_votes in candidate")
 for o in election.constituency:
     for p in o.candidates:
         print(p.name + " Number of votes " + str(p.num_votes))
+
+for p in election.constituency:
+    for q in p.candidates:
+        if q.elected:
+            print(q.name)
