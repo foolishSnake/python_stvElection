@@ -34,31 +34,38 @@ election.read_josn(json)
 for j in election.constituency:
     j.set_quota()
 
-for i in election.constituency:
-    print(i.name + ", Total Ballot = " + str(len(i.ballot)))
-    print("Quota = " + str(i.quota) + ", Expenses Quota = " + str(i.expenses_quota) + "\n")
+# for i in election.constituency:
+#     print(i.name + ", Total Ballot = " + str(len(i.ballot)))
+#     print("Quota = " + str(i.quota) + ", Expenses Quota = " + str(i.expenses_quota) + "\n")
 
 for l in election.constituency:
     l.first_count()
 
-for k in election.constituency:
-    print(k.name)
-    k.print_first()
-    print("\n")
+# for k in election.constituency:
+#     print(k.name)
+#     k.print_first()
+#     print("\n")
 
 
 for m in election.constituency:
     m.check_elected()
 
-for n in election.constituency:
-    n.print_elected()
+# for n in election.constituency:
+#     n.print_elected()
 
-print("Test the num_votes in candidate")
-for o in election.constituency:
-    for p in o.candidates:
-        print(p.name + " Number of votes " + str(p.num_votes))
+# print("Test the num_votes in candidate")
+# for o in election.constituency:
+#     print("\n" + o.name)
+#     for p in o.candidates:
+#         print(p.name + " Number of votes " + str(p.num_votes))
+#
+# for p in election.constituency:
+#     for q in p.candidates:
+#         if q.elected:
+#             print("\n" + q.name)
 
-for p in election.constituency:
-    for q in p.candidates:
-        if q.elected:
-            print(q.name)
+for i in election.constituency:
+    for j in i.candidates:
+        transfers = j.number_transfers(i.quota)
+        if transfers > 0:
+            print(j.name + " " + str(transfers))

@@ -24,6 +24,12 @@ class Candidate:
         for i in self.votes_per_count:
             votes += i
         return votes
+
+    def number_transfers(self, quota):
+        if self.elected:
+            return len(self.first_votes) - quota
+        else:
+            return 0
 # cand = Candidate("Marl", "Bob Marley", "Rasta")
 #
 #
