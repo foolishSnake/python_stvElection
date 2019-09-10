@@ -64,8 +64,18 @@ for m in election.constituency:
 #         if q.elected:
 #             print("\n" + q.name)
 
+# Prints the name and number of surplus votes a candidate has
 for i in election.constituency:
     for j in i.candidates:
         transfers = j.number_transfers(i.quota)
         if transfers > 0:
             print(j.name + " " + str(transfers))
+
+# runs the unelected method to create a list od all candidates still in the running
+for i in election.constituency:
+    i.unelected()
+# Prints the names of candidates who can get transfers
+for i in election.constituency:
+    print(i.name)
+    for j in i.available_cand:
+        print(i.candidates[j].name)

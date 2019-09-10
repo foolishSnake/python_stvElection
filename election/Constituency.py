@@ -15,6 +15,7 @@ class Constituency:
         self.ballot = []
         self.elected_cand = []
         self.eliminated_cand = []
+        self.available_cand = []
         self.count = 0
 
 
@@ -82,11 +83,11 @@ class Constituency:
                 return 0
 
     def unelected(self):
-        cand_index = []
-        for index, i in self.candidate:
+        self.available_cand = []
+        for index, i in enumerate(self.candidates):
             if not i.elected and not i.excluded:
-                cand_index.append(index)
-        return cand_index
+                self.available_cand.append(index)
+        return self.available_cand
 
     def transfers(self):
         for i in self.candidates:
