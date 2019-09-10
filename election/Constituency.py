@@ -35,7 +35,6 @@ class Constituency:
         return "Quota and expenses quota calculated @ {}".format(time.datetime.now())
 
     def first_count(self):
-        self.count += 1
         for vote in self.ballot:
             for index, i in enumerate(vote):
                 if i == 1:
@@ -43,7 +42,7 @@ class Constituency:
 
         for j in self.candidates:
             j.votes_per_count.append(len(j.first_votes))
-
+        self.count += 1
         return "First count complete for {} @ {}".format(self.name, time.datetime.now())
 
 
@@ -56,6 +55,10 @@ class Constituency:
             print(i.name + " " + str(len(i.first_votes)))
 
     def check_elected(self):
+        """
+
+        :return: str with message for log
+        """
 
         for i in self.candidates:
             if i not in self.elected_cand:
@@ -66,6 +69,9 @@ class Constituency:
                 else:
                     if i.num_votes >= self.expenses_quota:
                         i.return_expenses = True
+        return "Check if any candidates are elected or get expenses @ {}".format(time.datetime.now())
+
+
 
     def print_elected(self):
         """
