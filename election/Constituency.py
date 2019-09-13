@@ -113,6 +113,11 @@ class Constituency:
         return index
 
     def precent_transfers(self, transfers):
+        """
+
+        :param transfers:
+        :return:
+        """
         transfer_votes = []
         for i in self.candidates:
             transfer_votes.append []
