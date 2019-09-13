@@ -101,3 +101,24 @@ class Constituency:
                 if i.elected and len(i.first_votes) > self.quota:
                     return i.first_vote
         return None
+
+    def next_pref(self, vote):
+        low = 100
+        index = None
+        for j in self.available_cand:
+            if vote[j] < low and vote[j] > 1:
+                low = vote[j]
+                index = j
+
+        return index
+
+    def precent_transfers(self, transfers):
+        transfer_votes = []
+        for i in self.candidates:
+            transfer_votes.append []
+
+        for i in transfers:
+            index = self.next_pref(i)
+            if index is not None:
+                transfer_votes[index].append(i)
+
