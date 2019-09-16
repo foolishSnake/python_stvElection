@@ -13,6 +13,7 @@ class Constituency:
         self.num_seats = 0
         self.candidates = []
         self.ballot = []
+        self.transfer_votes = []
         self.elected_cand = []
         self.eliminated_cand = []
         self.available_cand = []
@@ -120,10 +121,10 @@ class Constituency:
         """
         transfer_votes = []
         for i in self.candidates:
-            transfer_votes.append []
+            transfer_votes.append([])
 
         for i in transfers:
             index = self.next_pref(i)
             if index is not None:
                 transfer_votes[index].append(i)
-
+        return transfer_votes
