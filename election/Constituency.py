@@ -113,18 +113,30 @@ class Constituency:
 
         return index
 
-    def precent_transfers(self, transfers):
+    def precent_transfers(self, candidate):
         """
 
         :param transfers:
         :return:
         """
-        transfer_votes = []
+        self.transfer_votes = []
         for i in self.candidates:
-            transfer_votes.append([])
+            self.transfer_votes.append([])
 
-        for i in transfers:
+        for i in candidate.first_votes:
             index = self.next_pref(i)
             if index is not None:
-                transfer_votes[index].append(i)
-        return transfer_votes
+                self.transfer_votes[index].append(i)
+
+        precentage_cand = []
+        valid_transfers = 0
+        for k in self.transfer_votes:
+            valid_transfers += len(k)
+        print(valid_transfers)
+        print(len(candidate.first_votes))
+
+
+
+
+    def transfer_cand(self, votes):
+        return None

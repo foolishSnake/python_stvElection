@@ -79,12 +79,12 @@ for i in election.constituency:
     print(i.name)
     for j in i.available_cand:
         print(i.candidates[j].name)
-transfers_list = []
+
 for i in election.constituency:
     if i.count == 1:
         for j in i.candidates:
             if j.elected:
-                i.transfer_votes = i.precent_transfers(j.first_votes)
+                i.precent_transfers(j)
 
 
 """Print the size of the list at each index"""
