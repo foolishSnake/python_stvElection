@@ -135,6 +135,14 @@ class Constituency:
         print(valid_transfers)
         print(len(candidate.first_votes))
 
+        for l in self.transfer_votes:
+            if len(l) == 0:
+                precentage_cand.append(0)
+            else:
+                precentage_cand.append(len(l) / (len(candidate.first_votes) / 100))
+
+        print(precentage_cand)
+        print(sum(precentage_cand))
 
 
 
