@@ -63,13 +63,13 @@ class Constituency:
 
         for i in self.candidates:
             if i not in self.elected_cand:
+                if i.num_votes >= self.expenses_quota:
+                    i.return_expenses = True
                 if i.num_votes >= self.quota:
                     i.elected = True
-                    i.return_expenses = True
                     self.elected_cand.append(i)
-                else:
-                    if i.num_votes >= self.expenses_quota:
-                        i.return_expenses = True
+                    i.set_surplus(self.quota)
+
         return "Check if any candidates are elected or get expenses @ {}".format(time.datetime.now())
 
 
@@ -143,6 +143,18 @@ class Constituency:
 
         print(precentage_cand)
         print(sum(precentage_cand))
+        print("candidate surplus = {}".format(candidate.surplus))
+        test_tran = []
+        for i in self.candidates:
+            test_tran.append([])
+        for index, k in enumerate(self.transfer_votes):
+            if len(k) != 0:
+                num_votes = round((candidate.surplus / 100) * precentage_cand[index])
+                for i in k(reversed(range(num_votes))):
+                    test_tran.append(i)
+
+        print(test_tran)
+
 
 
 

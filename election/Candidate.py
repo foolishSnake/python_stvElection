@@ -14,7 +14,7 @@ class Candidate:
         self.first_votes = []
         self.transferred_votes = []
         self.last_transfer = []
-        self.available_surplus = 0
+        self.surplus = 0
         self.votes_per_count = []
         self._count = 0
 
@@ -26,10 +26,21 @@ class Candidate:
         return votes
 
     def number_transfers(self, quota):
+        """
+        currently not in use.
+        :param quota:
+        :return:
+        """
         if self.elected:
             return len(self.first_votes) - quota
         else:
             return 0
+
+    def set_surplus(self, quota):
+        if self.num_votes > quota:
+            self.surplus = self.num_votes - quota
+
+
 # cand = Candidate("Marl", "Bob Marley", "Rasta")
 #
 #
