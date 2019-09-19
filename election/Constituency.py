@@ -150,10 +150,10 @@ class Constituency:
         for index, k in enumerate(self.transfer_votes):
             if len(k) != 0:
                 num_votes = round((candidate.surplus / 100) * precentage_cand[index])
-                for i in k(reversed(range(num_votes))):
-                    test_tran.append(i)
+                for i in range(len(k) - 1, len(k) - num_votes, -1):
+                    test_tran.append(k[i])
 
-        print(test_tran)
+        print(len(test_tran))
 
 
 
