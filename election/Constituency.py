@@ -81,7 +81,10 @@ class Constituency:
             if i in self.available_cand and i.num_votes > lowest_votes:
                 lowest_votes = i.num_votes
                 cand_index = index
-        return cand_index
+        if cand_index is not None:
+            return cand_index
+        else:
+            return None
 
 
     def print_elected(self):
@@ -173,5 +176,9 @@ class Constituency:
         return None
 
     def eliminate_cand(self):
-        cand_votes = {}
-        for i in self.candidates:
+        for i in range(3):
+            cand_index = self.lowest_votes()
+            if cand_index is not None:
+                self.candidates[cand_index].excluded = True
+                self.eliminated_cand.append(self.candidates[cand_index])
+
