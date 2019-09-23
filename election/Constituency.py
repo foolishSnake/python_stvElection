@@ -1,5 +1,6 @@
 from Candidate import *
 import datetime as time
+from operator import attrgetter
 
 class Constituency:
 
@@ -18,6 +19,7 @@ class Constituency:
         self.eliminated_cand = []
         self.available_cand = []
         self.count = 0
+        self.transfer_round = 0
 
 
     # def read_ballot(self):
@@ -72,6 +74,14 @@ class Constituency:
 
         return "Check if any candidates are elected or get expenses @ {}".format(time.datetime.now())
 
+    def lowest_votes(self):
+        lowest_votes = 99999999999
+        cand_index = None
+        for index, i in enumerate(self.candidates):
+            if i in self.available_cand and i.num_votes > lowest_votes:
+                lowest_votes = i.num_votes
+                cand_index = index
+        return cand_index
 
 
     def print_elected(self):
@@ -150,6 +160,7 @@ class Constituency:
         for index, k in enumerate(self.transfer_votes):
             if len(k) != 0:
                 num_votes = round((candidate.surplus / 100) * precentage_cand[index])
+                print("Num trans votes = {} {}".format(num_votes, self.candidates[index].name))
                 for i in range(len(k) - 1, len(k) - num_votes, -1):
                     test_tran.append(k[i])
 
@@ -160,3 +171,7 @@ class Constituency:
 
     def transfer_cand(self, votes):
         return None
+
+    def eliminate_cand(self):
+        cand_votes = {}
+        for i in self.candidates:

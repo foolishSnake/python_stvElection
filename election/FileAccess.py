@@ -90,7 +90,7 @@ class FileAccess:
             constituency.num_seats = data["Number of Seats"]
             cand_list = []
             for cand in data["Candidate"]:
-                cand_list.append(Candidate(cand["Ref"],cand["Name"], cand["Party"] ))
+                cand_list.append(Candidate(cand["Ref"], cand["Name"], cand["Party"], cand["Index"]))
             constituency.candidates = cand_list
         return constituency
 
