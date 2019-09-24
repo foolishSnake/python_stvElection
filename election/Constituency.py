@@ -71,6 +71,7 @@ class Constituency:
                     i.elected = True
                     self.elected_cand.append(i)
                     i.set_surplus(self.quota)
+                    self.transfer_round += i.surplus
 
         return "Check if any candidates are elected or get expenses @ {}".format(time.datetime.now())
 
@@ -179,6 +180,8 @@ class Constituency:
         for i in range(3):
             cand_index = self.lowest_votes()
             if cand_index is not None:
-                self.candidates[cand_index].excluded = True
-                self.eliminated_cand.append(self.candidates[cand_index])
+                if self.candidates[cand_index].num_votes + self.transfer_round < self.expenses_quota:
+                    self.candidates[cand_index].excluded = True
+                    self.eliminated_cand.append(self.candidates[cand_index])
+                    self.transfer_round + self.eliminated_cand[cand_index].num_votes
 
