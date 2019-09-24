@@ -77,15 +77,18 @@ class Constituency:
 
     def lowest_votes(self):
         lowest_votes = 99999999999
-        cand_index = None
-        for index, i in enumerate(self.candidates):
-            if i in self.available_cand and i.num_votes > lowest_votes:
-                lowest_votes = i.num_votes
-                cand_index = index
-        if cand_index is not None:
-            return cand_index
-        else:
-            return None
+        lowest_cand = None
+        for i in self.candidates:
+            if not i.excluded or not i.elected:
+                print("lowest_vote method cand name " + i.name)
+                if i.num_votes < lowest_votes:
+                    lowest_votes = i.num_votes
+                    lowest_cand = i
+
+        # if cand_index is not None:
+        #     return cand_index
+        # else:
+        return lowest_cand
 
 
     def print_elected(self):
@@ -178,10 +181,13 @@ class Constituency:
 
     def eliminate_cand(self):
         for i in range(3):
-            cand_index = self.lowest_votes()
-            if cand_index is not None:
-                if self.candidates[cand_index].num_votes + self.transfer_round < self.expenses_quota:
-                    self.candidates[cand_index].excluded = True
-                    self.eliminated_cand.append(self.candidates[cand_index])
-                    self.transfer_round + self.eliminated_cand[cand_index].num_votes
+            print("eliminate_cand is running " + str(i))
+            lowest_cand = self.lowest_votes()
+            if lowest_cand is not None:
+                print(lowest_cand.name + " Before Excluded")
+                if lowest_cand.num_votes + self.transfer_round < self.expenses_quota:
+                    lowest_cand.excluded = True
+                    self.eliminated_cand.append(lowest_cand)
+                    self.transfer_round + lowest_cand.num_votes
+                    print(lowest_cand.name + " Excluded")
 

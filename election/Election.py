@@ -92,3 +92,11 @@ for i in election.constituency:
     print(i.name)
     for index, j in enumerate(i.transfer_votes):
         print("Index {} - Number Transfers {}".format(index, len(j)))
+
+for i in election.constituency:
+    i.eliminate_cand()
+
+for i in election.constituency:
+    for j in i.candidates:
+        if j.excluded:
+            print(j.name)
