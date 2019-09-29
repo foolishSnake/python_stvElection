@@ -1,12 +1,12 @@
 class Candidate:
 
-    def __init__(self, cand_id, name, party, index):
+    def __init__(self, cand_id, name, party, cand_index):
         """
 
         :rtype: object
         """
         self.cand_id = cand_id
-        self.cand_index = index
+        self.cand_index = cand_index
         self.name = name
         self.party = party
         self.elected = False

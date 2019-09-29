@@ -1,5 +1,6 @@
 from Candidate import *
 import datetime as time
+from random import randrange
 from operator import attrgetter
 
 class Constituency:
@@ -21,8 +22,27 @@ class Constituency:
         self.count = 0
         self.transfer_round = 0
 
+        # writelog = FileAccess.write_log()
+
 
     # def read_ballot(self):
+
+    def set_available_cand(self):
+        """
+        For each candidate in the election append a copy of their odject to the available_cand list.
+
+        :return:
+        """
+        for i in self.candidates:
+            self.available_cand.append(i)
+
+    def available_cand_remove(self, cand):
+        """
+        Removes a condidate from the available_cand list
+        :param cand: A reference for a Candidate object
+        :return:
+        """
+        self.available_cand.remove(cand)
 
     def set_quota(self):
         """
@@ -38,6 +58,11 @@ class Constituency:
         return "Quota and expenses quota calculated @ {}".format(time.datetime.now())
 
     def first_count(self):
+        """
+        Does the first count. Reads the ballot attribute, copies a vote for each first preference to the relevant
+         candidate. Apprnds the number of first round votes to the votes_per_count attribute.
+        :return:
+        """
         for vote in self.ballot:
             for index, i in enumerate(vote):
                 if i == 1:
@@ -54,6 +79,7 @@ class Constituency:
         test method
         :return:
         """
+        print(self.name)
         for i in self.candidates:
             print(i.name + " " + str(len(i.first_votes)))
 
@@ -71,19 +97,34 @@ class Constituency:
                     i.elected = True
                     self.elected_cand.append(i)
                     i.set_surplus(self.quota)
+                    self.available_cand_remove(i)
                     self.transfer_round += i.surplus
 
         return "Check if any candidates are elected or get expenses @ {}".format(time.datetime.now())
 
+    def print_available_cand(self):
+        """ Test method"""
+        for i in self.available_cand:
+            print(i.name, end = ", ")
+        print("")
+
+    # def lowest_votes(self):
+    #     lowest_votes = 99999999999
+    #     lowest_cand = None
+    #     for i in self.candidates:
+    #         if not i.excluded or not i.elected:
+    #             print("lowest_vote method cand name " + i.name)
+    #             if i.num_votes < lowest_votes:
+    #                 lowest_votes = i.num_votes
+    #                 lowest_cand = i
+
     def lowest_votes(self):
         lowest_votes = 99999999999
         lowest_cand = None
-        for i in self.candidates:
-            if not i.excluded or not i.elected:
-                print("lowest_vote method cand name " + i.name)
-                if i.num_votes < lowest_votes:
-                    lowest_votes = i.num_votes
-                    lowest_cand = i
+        for i in self.available_cand:
+            if i.num_votes < lowest_votes:
+                lowest_votes = i.num_votes
+                lowest_cand = i
 
         # if cand_index is not None:
         #     return cand_index
@@ -105,13 +146,13 @@ class Constituency:
                 return len(i.first_votes) - self.quota
             else:
                 return 0
-
-    def unelected(self):
-        self.available_cand = []
-        for index, i in enumerate(self.candidates):
-            if not i.elected and not i.excluded:
-                self.available_cand.append(index)
-        return self.available_cand
+# I don't think I will use this method now
+#     def unelected(self):
+#         self.available_cand = []
+#         for index, i in enumerate(self.candidates):
+#             if not i.elected and not i.excluded:
+#                 self.available_cand.append(index)
+#         return self.available_cand
 
     def transfers(self):
         for i in self.candidates:
@@ -124,9 +165,9 @@ class Constituency:
         low = 100
         index = None
         for j in self.available_cand:
-            if vote[j] < low and vote[j] > 1:
-                low = vote[j]
-                index = j
+            if low > vote[j.cand_index] > 1:
+                low = vote[j.cand_index]
+                index = j.cand_index
 
         return index
 
@@ -173,6 +214,57 @@ class Constituency:
 
         print(len(test_tran))
 
+    def set_surplus(self):
+        for i in self.elected_cand:
+            if i.num_votes > self.quota:
+                i.set_surplus(self.quota)
+
+    def print_surplus(self):
+        """
+        Test method
+        :return:
+        """
+        for i in self.candidates:
+            if i.surplus > 0:
+                print("Constituency {} Candidate {} has {} surplus votes".format(self.name, i.name, i.surplus))
+
+    def test_distribute_surplus(self, cand):
+        """
+        Test if the surplus a candidate has can be used distributed
+        :param cand: Candidate Object that has surplus votes.
+        :return: Boolean True if the rule is met and False if not.
+        """
+        for i in self.available_cand:
+            if i.num_votes + cand.surplus >= self.expenses_quota or i.num_votes + cand.surplus >= self.quota:
+                return True
+            else:
+                return False
+
+    def candidate_highest_surplus(self):
+        """
+        Return the reference for a candidate object with the highest surplus.
+        If the highest surplus is shared by more than one candidate, we poll all candidates and pick one at random.
+        :return:
+        """
+        high_surplus = []
+        for i in self.elected_cand:
+            if i.surplus > 0 and len(high_surplus) == 0:
+                high_surplus.append(i)
+            else:
+                if i.surplus > high_surplus[0].surplus:
+                    high_surplus[0] = i
+                else:
+                    if i.surplus == high_surplus[0].surplus:
+                        high_surplus.append(i)
+        if len(high_surplus) == 0:
+            return None
+        elif len(high_surplus) == 1:
+            return high_surplus[0]
+        else:
+            # If 2 or more candidates have the same surplus we have to draw a candidate at random
+            return high_surplus[randrange(len(high_surplus))]
+
+
 
 
 
@@ -191,3 +283,18 @@ class Constituency:
                     self.transfer_round + lowest_cand.num_votes
                     print(lowest_cand.name + " Excluded")
 
+
+    def count_ballot(self):
+        self.set_available_cand()
+        self.set_quota()
+        self.first_count()
+        self.print_first()
+        self.check_elected()
+        self.print_available_cand()
+        low = self.lowest_votes()
+        print("This is the name of the lowest candidate for {} {}".format(self.name, low.name))
+        self.set_surplus()
+        self.print_surplus()
+        high = self.candidate_highest_surplus()
+        if high is not None:
+            print("{} Cand with highest surplus is {} ".format(self.name, high.name))
