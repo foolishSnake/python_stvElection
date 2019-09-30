@@ -162,6 +162,12 @@ class Constituency:
         return None
 
     def next_pref(self, vote):
+        """
+        Method take a single vote as a parameter and returns the cand_index value for the candidate getting the next
+        preference on that vote
+        :param: vote: a list of integer representing a ballot
+        :return: index: a integer with the index of the candidate getting the next preference
+        """
         low = 100
         index = None
         for j in self.available_cand:
@@ -170,6 +176,22 @@ class Constituency:
                 index = j.cand_index
 
         return index
+
+    def transfers_to_candidate(self, votes):
+        self.transfer_votes = []
+        non_transferable = []
+            # Add an empty list for each candidate
+            for i in self.candidates:
+                self.transfer_votes.append([])
+
+            for i in votes:
+                index = self.next_pref(i)
+                if index == None:
+                    non_transferable.append(i)
+                else:
+                    self.transfer_votes[index].append(i)
+
+
 
     def precent_transfers(self, candidate):
         """
@@ -215,6 +237,7 @@ class Constituency:
         print(len(test_tran))
 
     def set_surplus(self):
+        """ Sets the surplus attribute for a candidate """
         for i in self.elected_cand:
             if i.num_votes > self.quota:
                 i.set_surplus(self.quota)
@@ -298,3 +321,5 @@ class Constituency:
         high = self.candidate_highest_surplus()
         if high is not None:
             print("{} Cand with highest surplus is {} ".format(self.name, high.name))
+        if high is not None:
+            print("{} candidate {}. Can we distribute their surplus {}.".format(self.name, high.name, self.test_distribute_surplus(high)))
