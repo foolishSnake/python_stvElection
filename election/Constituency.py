@@ -21,6 +21,7 @@ class Constituency:
         self.available_cand = []
         self.count = 0
         self.transfer_round = 0
+        self.non_transferable = []
 
         # writelog = FileAccess.write_log()
 
@@ -179,17 +180,18 @@ class Constituency:
 
     def transfers_to_candidate(self, votes):
         self.transfer_votes = []
-        non_transferable = []
-            # Add an empty list for each candidate
-            for i in self.candidates:
-                self.transfer_votes.append([])
+        temp_non_transferable = []
+        # Add an empty list for each candidate
+        for i in self.candidates:
+            self.transfer_votes.append([])
 
-            for i in votes:
-                index = self.next_pref(i)
-                if index == None:
-                    non_transferable.append(i)
-                else:
-                    self.transfer_votes[index].append(i)
+        for i in votes:
+            index = self.next_pref(i)
+            if index == None:
+                temp_non_transferable.append(i)
+            else:
+                self.transfer_votes[index].append(i)
+        self.non_transferable.append(temp_non_transferable)
 
 
 
@@ -319,7 +321,10 @@ class Constituency:
         self.set_surplus()
         self.print_surplus()
         high = self.candidate_highest_surplus()
-        if high is not None:
-            print("{} Cand with highest surplus is {} ".format(self.name, high.name))
-        if high is not None:
-            print("{} candidate {}. Can we distribute their surplus {}.".format(self.name, high.name, self.test_distribute_surplus(high)))
+        # if high is not None:
+        #     print("{} Cand with highest surplus is {} ".format(self.name, high.name))
+        # if high is not None:
+        #     print("{} candidate {}. Can we distribute their surplus {}.".format(self.name, high.name, self.test_distribute_surplus(high)))
+        self.transfers_to_candidate(high.first_votes)
+        print("Non Transferable papers = {} ".format(len(self.non_transferable[0])))
+        print("Sum of transferable papers = {}".format(len(self.transfer_votes)))
