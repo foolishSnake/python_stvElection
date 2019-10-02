@@ -193,6 +193,33 @@ class Constituency:
                 self.transfer_votes[index].append(i)
         self.non_transferable.append(temp_non_transferable)
 
+    def sum_transferable(self, votes):
+        """
+        Takes a list of transferable votes and get the total for all ballots in it.
+        :param votes: List of transferable votes.
+        :return: total_transferable: int: The sum of all transferable votes.
+        """
+        total_transferable = 0
+        for i in votes:
+            total_transferable += len(i)
+        return total_transferable
+
+    def transfer_percent(self, votes):
+        """
+        Take a list of transferable votes and creates a list of the percentage of votes each candidate has to get.
+        :param votes: List: of the transferable votes
+        :return: percent_cand: List: of the percentage of the transfers.
+        """
+        percent_cand = []
+
+        transferable = self.sum_transferable(votes)
+        for i in votes:
+            if len(i) == 0:
+                percent_cand.append(0)
+            else:
+                percent_cand.append(len(i) / (transferable / 100))
+        return percent_cand
+
 
 
     def precent_transfers(self, candidate):
@@ -328,3 +355,6 @@ class Constituency:
         self.transfers_to_candidate(high.first_votes)
         print("Non Transferable papers = {} ".format(len(self.non_transferable[0])))
         print("Sum of transferable papers = {}".format(len(self.transfer_votes)))
+        print("Number of transferable votes = {} Num total votes = {}".format(self.sum_transferable(self.transfer_votes), len(high.first_votes)))
+        print("Percentage votes = {}".format(self.transfer_percent(self.transfer_votes)))
+
