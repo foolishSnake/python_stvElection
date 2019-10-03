@@ -207,6 +207,7 @@ class Constituency:
     def transfer_percent(self, votes):
         """
         Take a list of transferable votes and creates a list of the percentage of votes each candidate has to get.
+        The index in the list matches the cand_index value in the candidate object.
         :param votes: List: of the transferable votes
         :return: percent_cand: List: of the percentage of the transfers.
         """
@@ -215,10 +216,26 @@ class Constituency:
         transferable = self.sum_transferable(votes)
         for i in votes:
             if len(i) == 0:
-                percent_cand.append(0)
+                percent_cand.append(0.0)
             else:
                 percent_cand.append(len(i) / (transferable / 100))
         return percent_cand
+
+    def proportion_transfer(self, votes, percentage, surplus):
+        return None
+
+    def proportion_amount(self, percentage, surplus):
+        vote_amount = []
+        for i in percentage:
+            if i == 0:
+                vote_amount.append(0)
+            else:
+                vote_amount.append(round((surplus/100) * i))
+        return vote_amount
+        # if sum(vote_amount) == surplus:
+        #     return vote_amount
+        # else:
+        #     votes_needed = surplus - sum(vote_amount)
 
 
 
@@ -357,4 +374,5 @@ class Constituency:
         print("Sum of transferable papers = {}".format(len(self.transfer_votes)))
         print("Number of transferable votes = {} Num total votes = {}".format(self.sum_transferable(self.transfer_votes), len(high.first_votes)))
         print("Percentage votes = {}".format(self.transfer_percent(self.transfer_votes)))
+        print("Sum of proportion_transfer votes = {}".format(sum(self.proportion_amount(self.transfer_percent(self.transfer_votes), high.surplus))))
 
