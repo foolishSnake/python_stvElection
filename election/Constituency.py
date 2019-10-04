@@ -1,6 +1,7 @@
 from Candidate import *
 import datetime as time
 from random import randrange
+from math import modf
 from operator import attrgetter
 
 class Constituency:
@@ -231,11 +232,28 @@ class Constituency:
                 vote_amount.append(0)
             else:
                 vote_amount.append(round((surplus/100) * i))
-        return vote_amount
-        # if sum(vote_amount) == surplus:
-        #     return vote_amount
-        # else:
-        #     votes_needed = surplus - sum(vote_amount)
+        # return vote_amount
+        if sum(vote_amount) == surplus:
+            return vote_amount
+        else:
+            print("This is the sum of the vote_amount before the else statement {} ".format(sum(vote_amount)))
+            votes_needed = surplus - sum(vote_amount)
+            factor = []
+            cand_index = []
+            for i in percentage:
+                # Get the mantissa of the percent float value
+                factor.append(modf(i)[0])
+            high = max(factor)
+            print("This is the high factor value {} ".format(high))
+            for index, i in enumerate(factor):
+                if i == high:
+                    cand_index.append(index)
+            if len(cand_index) == 1:
+                vote_amount[cand_index[0]] += 1
+            return vote_amount
+
+
+
 
 
 
