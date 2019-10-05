@@ -205,52 +205,94 @@ class Constituency:
             total_transferable += len(i)
         return total_transferable
 
-    def transfer_percent(self, votes):
+    def transfer_candidate(self, votes, surplus):
         """
-        Take a list of transferable votes and creates a list of the percentage of votes each candidate has to get.
+        Take a list of transferable votes and creates a list of the number of votes each candidate has to get.
         The index in the list matches the cand_index value in the candidate object.
+        :param surplus: int: value of the surplus votes
         :param votes: List: of the transferable votes
-        :return: percent_cand: List: of the percentage of the transfers.
+        :return: votes_per_cand: List: of the number of the transfers for each candidate, amount has fraction.
         """
-        percent_cand = []
+        votes_per_cand = []
 
         transferable = self.sum_transferable(votes)
         for i in votes:
             if len(i) == 0:
-                percent_cand.append(0.0)
+                votes_per_cand.append(0.0)
             else:
-                percent_cand.append(len(i) / (transferable / 100))
-        return percent_cand
+                # As per ELECTORAL ACT 1992(As amended by the Electoral (Amendment) Act 2001) Section 121 - 6 (b)
+                votes_per_cand.append((len(i) * surplus) / transferable)
+        return votes_per_cand
 
-    def proportion_transfer(self, votes, percentage, surplus):
+    def proportion_transfer(self, votes, votes_per_cand):
+        for index, i in enumerate(votes_per_cand):
+            for j in range(int(i)):
+                self.candidates[index].last_transfer.append(reversed(votes[index]))
         return None
 
-    def proportion_amount(self, percentage, surplus):
+    def print_cand_last_trans(self):
+        """
+        Test method
+        :return:
+        """
+        for i in self.candidates:
+            print("Name {}, Number last_transfer {}".format(i.name, len(i.last_transfer)))
+
+    def proportion_amount(self, votes_per_cand, surplus):
         vote_amount = []
-        for i in percentage:
-            if i == 0:
-                vote_amount.append(0)
-            else:
-                vote_amount.append(round((surplus/100) * i))
-        # return vote_amount
+        for i in votes_per_cand:
+            # Append the integer part of the vote amount
+            vote_amount.append(modf(i)[1])
+
         if sum(vote_amount) == surplus:
             return vote_amount
         else:
-            print("This is the sum of the vote_amount before the else statement {} ".format(sum(vote_amount)))
-            votes_needed = surplus - sum(vote_amount)
-            factor = []
-            cand_index = []
-            for i in percentage:
-                # Get the mantissa of the percent float value
-                factor.append(modf(i)[0])
-            high = max(factor)
-            print("This is the high factor value {} ".format(high))
-            for index, i in enumerate(factor):
-                if i == high:
-                    cand_index.append(index)
-            if len(cand_index) == 1:
-                vote_amount[cand_index[0]] += 1
-            return vote_amount
+            # factor = []
+            # cand_index = []
+            while sum(vote_amount) != surplus:
+                print("This is the sum of the vote_amount before the else statement {} ".format(sum(vote_amount)))
+                factor = []
+                cand_index = []
+                for i in votes_per_cand:
+                    # Get the mantissa from the number of votes.
+                    factor.append(modf(i)[0])
+                high = max(factor)
+                print("This is the high factor value {} ".format(high))
+                for index, i in enumerate(factor):
+                    if i == high:
+                        cand_index.append(index)
+                if len(cand_index) == 1:
+                    vote_amount[cand_index[0]] += 1
+                    factor[cand_index[0]] = 0.0
+                else:
+                    cand_high_parcel = []
+                    cand_high = []
+                    for i in cand_index:
+                        cand_high.append(votes_per_cand[i])
+                    high = max(cand_high)
+                    for i in cand_index:
+                        if votes_per_cand[i] == high:
+                            cand_high_parcel.append([i])
+                    if len(cand_high_parcel) == 1:
+                        vote_amount[cand_high_parcel[0]] += 1
+                        factor[cand_high_parcel[0]] = 0.0
+                    else:
+                        high_first = []
+                        cand_highest_first = []
+                        for i in cand_index:
+                            high_first.append(len(self.candidates[i].first_votes))
+                        highest_first = max(high_first)
+                        for index, i in enumerate(high_first):
+                            if i == highest_first:
+                                cand_highest_first.append(cand_index[index])
+                        if len(cand_highest_first) == 1:
+                            vote_amount[cand_highest_first[0]] += 1
+                            factor[cand_highest_first[0]] = 0.0
+                        else:
+                            # Draw lots to selected a candidate as highest
+                            draw_winner = randrange(len(cand_index))
+                            vote_amount[cand_index[draw_winner]] += 1
+        return vote_amount
 
 
 
@@ -390,7 +432,13 @@ class Constituency:
         self.transfers_to_candidate(high.first_votes)
         print("Non Transferable papers = {} ".format(len(self.non_transferable[0])))
         print("Sum of transferable papers = {}".format(len(self.transfer_votes)))
+        trans_per_cand = self.transfer_candidate(self.transfer_votes, high.surplus)
         print("Number of transferable votes = {} Num total votes = {}".format(self.sum_transferable(self.transfer_votes), len(high.first_votes)))
-        print("Percentage votes = {}".format(self.transfer_percent(self.transfer_votes)))
-        print("Sum of proportion_transfer votes = {}".format(sum(self.proportion_amount(self.transfer_percent(self.transfer_votes), high.surplus))))
+        print("Transfer vote list = {}".format(trans_per_cand))
+        print("The number of transfer votes is {}, the surplus is {}".format(sum(trans_per_cand), high.surplus))
+        print("Sum of proportion_transfer votes = {}".format(sum(self.proportion_amount(self.transfer_candidate(self.transfer_votes, high.surplus), high.surplus))))
+        vote_per_cand = self.proportion_amount(trans_per_cand, high.surplus)
+        self.proportion_transfer(trans_per_cand, vote_per_cand)
+        self.print_cand_last_trans()
+
 
