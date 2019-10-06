@@ -242,28 +242,22 @@ class Constituency:
         vote_amount = []
         for i in votes_per_cand:
             # Append the integer part of the vote amount
-            vote_amount.append(modf(i)[1])
-
+            vote_amount.append(int(modf(i)[1]))
+        print("Vote_amount int list {} and it sum {}".format(vote_amount, sum(vote_amount)))
         if sum(vote_amount) == surplus:
             return vote_amount
         else:
-            # factor = []
-            # cand_index = []
+            factor = [modf(i)[0] for i in votes_per_cand] # append the fraction part of the float to a list
             while sum(vote_amount) != surplus:
-                print("This is the sum of the vote_amount before the else statement {} ".format(sum(vote_amount)))
-                factor = []
                 cand_index = []
-                for i in votes_per_cand:
-                    # Get the mantissa from the number of votes.
-                    factor.append(modf(i)[0])
                 high = max(factor)
-                print("This is the high factor value {} ".format(high))
                 for index, i in enumerate(factor):
                     if i == high:
                         cand_index.append(index)
                 if len(cand_index) == 1:
                     vote_amount[cand_index[0]] += 1
                     factor[cand_index[0]] = 0.0
+                    continue
                 else:
                     cand_high_parcel = []
                     cand_high = []
@@ -276,6 +270,7 @@ class Constituency:
                     if len(cand_high_parcel) == 1:
                         vote_amount[cand_high_parcel[0]] += 1
                         factor[cand_high_parcel[0]] = 0.0
+                        continue
                     else:
                         high_first = []
                         cand_highest_first = []
@@ -288,10 +283,12 @@ class Constituency:
                         if len(cand_highest_first) == 1:
                             vote_amount[cand_highest_first[0]] += 1
                             factor[cand_highest_first[0]] = 0.0
+                            continue
                         else:
                             # Draw lots to selected a candidate as highest
                             draw_winner = randrange(len(cand_index))
                             vote_amount[cand_index[draw_winner]] += 1
+                            continue
         return vote_amount
 
 
@@ -438,7 +435,9 @@ class Constituency:
         print("The number of transfer votes is {}, the surplus is {}".format(sum(trans_per_cand), high.surplus))
         print("Sum of proportion_transfer votes = {}".format(sum(self.proportion_amount(self.transfer_candidate(self.transfer_votes, high.surplus), high.surplus))))
         vote_per_cand = self.proportion_amount(trans_per_cand, high.surplus)
-        self.proportion_transfer(trans_per_cand, vote_per_cand)
+        print(vote_per_cand)
+        print(sum(vote_per_cand))
+        self.proportion_transfer(self.transfer_votes, vote_per_cand)
         self.print_cand_last_trans()
 
 
