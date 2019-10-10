@@ -354,14 +354,26 @@ class Constituency:
             if i.surplus > 0:
                 print("Constituency {} Candidate {} has {} surplus votes".format(self.name, i.name, i.surplus))
 
+    def num_transferrable(self):
+        number_transferrable = 0
+        for i in self.candidates:
+            if i.elected:
+                number_transferrable += i.num_votes - self.quota
+                if i.excluded:
+                    number_transferrable += i.num_votes
+
+        return number_transferrable
+
+
     def test_distribute_surplus(self, cand):
         """
-        Test if the surplus a candidate has can be used distributed
+        Test if the surplus a candidate has can de distributed
         :param cand: Candidate Object that has surplus votes.
         :return: Boolean True if the rule is met and False if not.
         """
+        num_transfers = self.number_transferrable()
         for i in self.available_cand:
-            if i.num_votes + cand.surplus >= self.expenses_quota or i.num_votes + cand.surplus >= self.quota:
+            if i.num_votes + num_transfers >= self.expenses_quota or i.num_votes + num_transfers >= self.quota:
                 return True
             else:
                 return False
@@ -377,7 +389,7 @@ class Constituency:
             if i.surplus > 0 and len(high_surplus) == 0:
                 high_surplus.append(i)
             else:
-                if i.surplus > high_surplus[0].surplus:
+                if i.surplus >+ high_surplus[0].surplus:
                     high_surplus[0] = i
                 else:
                     if i.surplus == high_surplus[0].surplus:
@@ -386,9 +398,26 @@ class Constituency:
             return None
         elif len(high_surplus) == 1:
             return high_surplus[0]
-        else:
-            # If 2 or more candidates have the same surplus we have to draw a candidate at random
-            return high_surplus[randrange(len(high_surplus))]
+        elif len(high_surplus) > 1:
+            high_votes = [i.num_votes for i in high_surplus]
+            high = max(high_votes)
+            if high_votes.(high) == 1:
+                return high_surplus[high_votes.index(high)]
+            if high_votes.(high) > 1:
+                high_votes_cand = []
+                for index,i in enumerate(high_votes):
+                    if i == high:
+                        high_votes_cand.append(high_surplus[index])
+                high_first = [len(i.first_votes) for i in high_votes_cand]
+                highest_first = max(high_first)
+                if high_first.count(highest_first) == 1:
+                    return high_surplus[high_first.index(highest_first)]
+                else:
+                    cand_high_first = []
+                    for index, i in enumerate(high_first):
+                        if i == highest_first:
+                            cand_high_first.append(high_votes_cand[index])
+                return cand_high_first[randrange(len(cand_high_first))]
 
 
 
