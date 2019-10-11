@@ -125,13 +125,6 @@ class FileAccess:
         log_file = "log_{}_{}_{}.txt".format(log_date.year, log_date.month, log_date.day)
         try:
             with open(log_file, 'a') as log:
-                log.write(message + "\n")
+                log.write("{} @ {} \n".format(message, log_date))
         except FileNotFoundError as file_error:
             print("Could not access the log file " + str(file_error))
-
-file_access = FileAccess()
-# date = {"Day": 17, "Month": 5, "Year": 2002}
-# election2002 = Election2002()
-# d_n = election2002.dublin_north()
-# file_access.write_election_json("General", "Dublin North", d_n[0], date, d_n[1], d_n[2])
-file_access.write_log("test")

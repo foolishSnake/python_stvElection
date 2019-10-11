@@ -9,17 +9,19 @@ class Election:
         self.category = category
         self.date = date
         self.constituency = []
+        self.file_access = FileAccess()
 
-    def read_josn(self, json_files):
+    def read_json(self, json_files):
         """
         read_json takes a list of str for the name of all json files.
         Uses the json to generate a Constituency objects that gets append to the Election constituency attribute
         :param json_files:
         :return:
         """
-        file_access = FileAccess()
+        self.file_access.write_log("Attempting to read the json files {}".format(json_files))
         for i in json_files:
-            self.constituency.append(file_access.read_election_json(i))
+            self.constituency.append(self.file_access.read_election_json(i))
+            self.file_access.write_log("The {} json file has been added to the Constituency object".format(i))
 
     def count_ballots(self):
         return 0
@@ -30,7 +32,7 @@ json = ["Meath2002.json"]
 
 election = Election("General", {"Day": 17, "Month": 5, "Year": 2002})
 
-election.read_josn(json)
+election.read_json(json)
 for i in election.constituency:
     i.count_ballot()
 
