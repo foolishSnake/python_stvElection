@@ -31,7 +31,7 @@ class Constituency:
 
     def set_available_cand(self):
         """
-        For each candidate in the election append a copy of their odject to the available_cand list.
+        For each candidate in the election append a copy of their object to the available_cand list.
 
         :return:
         """
