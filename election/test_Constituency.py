@@ -77,6 +77,8 @@ def test_first_count():
     assert len(co.candidates[1].first_votes) == 100
     assert len(co.candidates[2].first_votes) == 100
 
+def test_check_elected():
+
 
 def test_lowest_votes():
     co = Constituency()
@@ -102,10 +104,13 @@ def test_lowest_votes():
     co.candidates[2].votes_per_count.append(3)
     co.candidates[3].votes_per_count.append(3)
     co.candidates[4].votes_per_count.append(1)
-
     assert co.lowest_votes().name == cand_1.name
     co.available_cand.remove(co.candidates[0])
     co.candidates.remove(co.candidates[0])
     assert co.lowest_votes().name == cand_2.name
-    # assert co.lowest_votes() == co.candidates[2]
-    # assert co.lowest_votes() == co.candidates[3]
+    co.available_cand.remove(co.candidates[0])
+    co.candidates.remove(co.candidates[0])
+    co.available_cand.remove(co.candidates[2])
+    co.candidates.remove(co.candidates[2])
+    assert co.lowest_votes() == co.candidates[0]
+

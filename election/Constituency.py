@@ -125,17 +125,18 @@ class Constituency:
                 lowest_votes = i.num_votes
         if len(lowest_cand) == 1:
             return lowest_cand[0]
-        elif len(lowest_cand) > 1:
+        if len(lowest_cand) > 1:
             low_first = []
             lowest_first = 9999999999
             for i in lowest_cand:
-                if len(i.first_votes) >= lowest_first:
+                if len(i.first_votes) <= lowest_first:
                     low_first.append(i)
-                if len(lowest_first) == 1:
-                    return low_first[0]
-                else:
-                    # Draw lots to pick lowest candidate
-                    return low_first[randrange(len(low_first))]
+                    lowest_first = len(i.first_votes)
+            if len(low_first) == 1:
+                return low_first[0]
+            else:
+                # Draw lots to pick lowest candidate
+                return low_first[randrange(len(low_first))]
 
 
 
