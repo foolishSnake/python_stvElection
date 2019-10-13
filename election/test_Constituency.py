@@ -45,6 +45,7 @@ def test_available_cand_remove():
     assert cand_2 not in co.available_cand
     assert cand_3 not in co.available_cand
 
+
 def test_set_quota():
     co = Constituency()
     co.ballot = [[1, 2, 3] for i in range(100)]
@@ -58,6 +59,7 @@ def test_set_quota():
     co.set_quota()
     assert co.quota == 34
     assert co.expenses_quota == 8
+
 
 def test_first_count():
     co = Constituency()
@@ -76,3 +78,34 @@ def test_first_count():
     assert len(co.candidates[2].first_votes) == 100
 
 
+def test_lowest_votes():
+    co = Constituency()
+    cand_1 = Candidate("Cand_1", "Test_1", "Test_party", 0)
+    cand_2 = Candidate("Cand_2", "Test_2", "Test_party", 1)
+    cand_3 = Candidate("Cand_3", "Test_3", "Test_party", 2)
+    cand_4 = Candidate("Cand_4", "Test_4", "Test_party", 3)
+    cand_5 = Candidate("Cand_5", "Test_5", "Test_party", 4)
+    co.candidates.append(cand_1)
+    co.candidates.append(cand_2)
+    co.candidates.append(cand_3)
+    co.candidates.append(cand_4)
+    co.candidates.append(cand_5)
+    co.available_cand = [i for i in co.candidates]
+    co.candidates[0].first_votes = [[1, 3, 2, 0], [1, 3, 2, 0], [1, 3, 2, 0], [1, 3, 2, 0]]
+    co.candidates[1].first_votes = [[0, 1, 2, 3], [0, 1, 2, 3], [0, 1, 2, 3]]
+    co.candidates[2].first_votes = [[2, 0, 1, 3], [2, 0, 1, 3], [2, 0, 1, 3], [2, 0, 1, 3]]
+    co.candidates[3].first_votes = [[2, 0, 3, 1], [2, 0, 3, 1], [2, 0, 3, 1], [2, 0, 3, 1]]
+    co.candidates[4].first_votes = [[2, 0, 3, 1], [2, 0, 3, 1], [2, 0, 3, 1], [2, 0, 3, 1],[2, 0, 3, 1]]
+    for i in co.candidates:
+        i.votes_per_count.append(len(i.first_votes))
+    co.candidates[1].votes_per_count.append(2)
+    co.candidates[2].votes_per_count.append(3)
+    co.candidates[3].votes_per_count.append(3)
+    co.candidates[4].votes_per_count.append(1)
+
+    assert co.lowest_votes().name == cand_1.name
+    co.available_cand.remove(co.candidates[0])
+    co.candidates.remove(co.candidates[0])
+    assert co.lowest_votes().name == cand_2.name
+    # assert co.lowest_votes() == co.candidates[2]
+    # assert co.lowest_votes() == co.candidates[3]

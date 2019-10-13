@@ -109,28 +109,37 @@ class Constituency:
             print(i.name, end=", ")
         print("")
 
-    # def lowest_votes(self):
-    #     lowest_votes = 99999999999
-    #     lowest_cand = None
-    #     for i in self.candidates:
-    #         if not i.excluded or not i.elected:
-    #             print("lowest_vote method cand name " + i.name)
-    #             if i.num_votes < lowest_votes:
-    #                 lowest_votes = i.num_votes
-    #                 lowest_cand = i
-
     def lowest_votes(self):
+        """
+        Read the number votes each candidates in available_cand have. If a Candidate has a unique low vote count its
+        object is returned. If 2 or more candidates have the same number of votes, we pick the candidate with the lowest
+         number of first count votes and return it. If 2 or more candidates have a equal number of first votes we draw
+         lot using randint() to decided what candidate object gets returned.
+        :return: a Candidate object
+        """
         lowest_votes = 99999999999
-        lowest_cand = None
+        lowest_cand = []
         for i in self.available_cand:
-            if i.num_votes < lowest_votes:
+            if i.num_votes <= lowest_votes:
+                lowest_cand.append(i)
                 lowest_votes = i.num_votes
-                lowest_cand = i
+        if len(lowest_cand) == 1:
+            return lowest_cand[0]
+        elif len(lowest_cand) > 1:
+            low_first = []
+            lowest_first = 9999999999
+            for i in lowest_cand:
+                if len(i.first_votes) >= lowest_first:
+                    low_first.append(i)
+                if len(lowest_first) == 1:
+                    return low_first[0]
+                else:
+                    # Draw lots to pick lowest candidate
+                    return low_first[randrange(len(low_first))]
 
-        # if cand_index is not None:
-        #     return cand_index
-        # else:
-        return lowest_cand
+
+
+
 
     def print_elected(self):
         """
@@ -290,48 +299,6 @@ class Constituency:
                             continue
         return vote_amount
 
-    def precent_transfers(self, candidate):
-        """
-
-        :param transfers:
-        :return:
-        """
-        self.transfer_votes = []
-        for i in self.candidates:
-            self.transfer_votes.append([])
-
-        for i in candidate.first_votes:
-            index = self.next_pref(i)
-            if index is not None:
-                self.transfer_votes[index].append(i)
-
-        precentage_cand = []
-        valid_transfers = 0
-        for k in self.transfer_votes:
-            valid_transfers += len(k)
-        print(valid_transfers)
-        print(len(candidate.first_votes))
-
-        for l in self.transfer_votes:
-            if len(l) == 0:
-                precentage_cand.append(0)
-            else:
-                precentage_cand.append(len(l) / (len(candidate.first_votes) / 100))
-
-        print(precentage_cand)
-        print(sum(precentage_cand))
-        print("candidate surplus = {}".format(candidate.surplus))
-        test_tran = []
-        for i in self.candidates:
-            test_tran.append([])
-        for index, k in enumerate(self.transfer_votes):
-            if len(k) != 0:
-                num_votes = round((candidate.surplus / 100) * precentage_cand[index])
-                print("Num trans votes = {} {}".format(num_votes, self.candidates[index].name))
-                for i in range(len(k) - 1, len(k) - num_votes, -1):
-                    test_tran.append(k[i])
-
-        print(len(test_tran))
 
     def set_surplus(self):
         """ Sets the surplus attribute for a candidate """
