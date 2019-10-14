@@ -151,7 +151,11 @@ class Constituency:
             print(i.name + " " + str(i.elected) + " " + str(i.return_expenses))
 
     def number_transfers(self):
-        for i in self.candidates:
+        """
+        This method has an issue. It can return a candidate that has already had their surplus transferred.
+        :return:
+        """
+        for i in self.elected_cand:
             if i.elected:
                 return len(i.first_votes) - self.quota
             else:
@@ -166,6 +170,10 @@ class Constituency:
     #         return self.available_cand
 
     def transfers(self):
+        """
+        This needs to return a list of all candidates that have a surplus
+        :return:
+        """
         for i in self.candidates:
             if self.count == 1:
                 if i.elected and len(i.first_votes) > self.quota:
