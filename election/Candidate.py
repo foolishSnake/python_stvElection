@@ -17,10 +17,14 @@ class Candidate:
         self.last_transfer = []
         self.surplus = 0
         self.votes_per_count = []
-        self._count = 0
+        self.surplus_transferred = False
 
     @property
     def num_votes(self):
+        """
+        Counts the number of votes per count and returns it value
+        :return:
+        """
         votes = 0
         for i in self.votes_per_count:
             votes += i
@@ -38,6 +42,11 @@ class Candidate:
             return 0
 
     def set_surplus(self, quota):
+        """
+        Set the value of the number of surplus votes
+        :param quota:
+        :return:
+        """
         if self.num_votes > quota:
             self.surplus = self.num_votes - quota
 

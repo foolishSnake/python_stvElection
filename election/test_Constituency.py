@@ -77,6 +77,11 @@ def test_first_count():
     assert len(co.candidates[1].first_votes) == 100
     assert len(co.candidates[2].first_votes) == 100
 
+def test_increase_count():
+    co = Constituency()
+    co.increase_count()
+    assert co.count == 1
+
 def test_check_elected():
     co = Constituency()
     cand_1 = Candidate("Cand_1", "Test_1", "Test_party", 0)

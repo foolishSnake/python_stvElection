@@ -28,16 +28,17 @@ class Constituency:
         # writelog = FileAccess.write_log()
 
     # def read_ballot(self):
-
+    # Keep this
     def set_available_cand(self):
         """
         For each candidate in the election append a copy of their object to the available_cand list.
+        This method is used only once before any counting is done.
 
         :return:
         """
         for i in self.candidates:
             self.available_cand.append(i)
-
+    # ?
     def available_cand_remove(self, cand):
         """
         Removes a condidate from the available_cand list
@@ -45,7 +46,7 @@ class Constituency:
         :return:
         """
         self.available_cand.remove(cand)
-
+    # Keep this
     def set_quota(self):
         """
         Calculates the quota and expenses_quota
@@ -58,11 +59,11 @@ class Constituency:
             self.expenses_quota = int(self.quota / 4)
 
         return "Quota and expenses quota calculated @ {}".format(time.datetime.now())
-
+    # Keep this
     def first_count(self):
         """
         Does the first count. Reads the ballot attribute, copies a vote for each first preference to the relevant
-         candidate. Apprnds the number of first round votes to the votes_per_count attribute.
+         candidate. Appends the number of first round votes to the votes_per_count attribute.
         :return:
         """
         for vote in self.ballot:
@@ -72,9 +73,15 @@ class Constituency:
 
         for j in self.candidates:
             j.votes_per_count.append(len(j.first_votes))
-        self.count += 1
+        self.increase_count()
         return "First count complete for {} @ {}".format(self.name, time.datetime.now())
+    # Keep this
+    def increase_count(self):
+        "Increases the count attribute by 1"
+        self.count += 1
 
+
+    # Remove after testing
     def print_first(self):
         """
         test method
@@ -103,19 +110,21 @@ class Constituency:
 
         return "Check if any candidates are elected or get expenses @ {}".format(time.datetime.now())
 
+    # After testing remove this method
     def print_available_cand(self):
         """ Test method"""
         for i in self.available_cand:
             print(i.name, end=", ")
         print("")
 
+    # Keep this method
     def lowest_votes(self):
         """
         Read the number votes each candidates in available_cand have. If a Candidate has a unique low vote count its
         object is returned. If 2 or more candidates have the same number of votes, we pick the candidate with the lowest
          number of first count votes and return it. If 2 or more candidates have a equal number of first votes we draw
          lot using randint() to decided what candidate object gets returned.
-        :return: a Candidate object
+        :return: Candidate object
         """
         lowest_votes = 99999999999
         lowest_cand = []
@@ -141,7 +150,7 @@ class Constituency:
 
 
 
-
+    # Remove this method after testing
     def print_elected(self):
         """
         Test method
