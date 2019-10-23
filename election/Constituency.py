@@ -249,11 +249,23 @@ class Constituency:
                 # As per ELECTORAL ACT 1992(As amended by the Electoral (Amendment) Act 2001) Section 121 - 6 (b)
                 votes_per_cand.append((len(i) * surplus) / transferable)
         return votes_per_cand
-
+    # Keep this
     def proportion_transfer(self, votes, votes_per_cand):
+        """
+        Takes to parameter votes and votes_per_cand. The index of the elements in votes_per_cand is the same index as
+        a candidates index. We take the last vote in the votes for each candidate and transfer the amount of votes they
+        require based on the value in votes_per_cand. Append the number of votes transferred to the votes_per_count.
+        Increase the count by 1 by calling increase_count() method.
+        :param votes:
+        :param votes_per_cand:
+        :return:
+        """
         for index, i in enumerate(votes_per_cand):
             for j in range(int(i)):
                 self.candidates[index].last_transfer.append(reversed(votes[index]))
+            self.candidates[index].votes_per_count.append(len(self.candidates[index].last_transfer))
+            self.candidates[index].transferred_votes.append(self.candidates[index].last_transfer.copy())
+        self.increase_count()
         return None
 
     def print_cand_last_trans(self):
@@ -441,7 +453,9 @@ class Constituency:
         vote_per_cand = self.proportion_amount(trans_per_cand, high.surplus)
         print(vote_per_cand)
         print(sum(vote_per_cand))
+        print("The count number is {}".format(self.count))
         self.proportion_transfer(self.transfer_votes, vote_per_cand)
+        print("The count number now is {}".format(self.count))
         self.print_cand_last_trans()
         cand = self.candidate_highest_surplus()
         print("The name of the highest candidate is {}".format(cand.name))
