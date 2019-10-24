@@ -165,7 +165,7 @@ class Constituency:
         :return:
         """
         for i in self.elected_cand:
-            if i.elected:
+            if i.elected and i.surplus_transferred:
                 return len(i.first_votes) - self.quota
             else:
                 return 0
@@ -205,7 +205,12 @@ class Constituency:
 
         return index
 
-    def transfers_to_candidate(self, votes):
+    def transfers_per_candidate(self, votes):
+        """
+        Takes a list of ballot papers and groups them together based on the next valid preference on each ballot
+        :param votes:
+        :return:
+        """
         self.transfer_votes = []
         temp_non_transferable = []
         # Add an empty list for each candidate
@@ -281,7 +286,6 @@ class Constituency:
         for i in votes_per_cand:
             # Append the integer part of the vote amount
             vote_amount.append(int(modf(i)[1]))
-        print("Vote_amount int list {} and it sum {}".format(vote_amount, sum(vote_amount)))
         if sum(vote_amount) == surplus:
             return vote_amount
         else:
@@ -409,8 +413,6 @@ class Constituency:
                             cand_high_first.append(high_votes_cand[index])
                 return cand_high_first[randrange(len(cand_high_first))]
 
-    def transfer_cand(self, votes):
-        return None
 
     def eliminate_cand(self):
         for i in range(3):
@@ -424,38 +426,49 @@ class Constituency:
                     self.transfer_round + lowest_cand.num_votes
                     print(lowest_cand.name + " Excluded")
 
+    def print_candidate_details(self):
+        """
+        Test method used to ptint the details if candidate attributes
+        :return:
+        """
+        for i in self.candidates:
+            print("-----------------------------------------------------------------------------")
+            print("Name: {}".format(i.name))
+            print("Number first Votes: {}".format(len(i.first_votes)))
+            print("Number last transferred votes: {}".format(len(i.last_transfer)))
+            print("The total number of votes is: {}".format(i.num_votes))
+            print("The total transferred votes is: {}".format(len(i.transferred_votes)))
+            print("Number of counts: {}, Sum of votes per count {}".format(len(i.votes_per_count), sum(i.votes_per_count)))
+            print("Are they elected: {}".format(i.elected))
+            print("Are they eliminted: {}".format(i.excluded))
+            print("Do they get expenses back: {}".format(i.return_expenses))
+            print("Current surplus: {}".format(i.surplus))
+            print("Have they had a surplus transferred: {}".format(i.surplus_transferred))
+            print("-----------------------------------------------------------------------------")
+
     def count_ballot(self):
         self.set_available_cand()
         self.set_quota()
         self.first_count()
         self.print_first()
         self.check_elected()
-        self.print_available_cand()
+        # self.print_available_cand()
         low = self.lowest_votes()
-        print("This is the name of the lowest candidate for {} {}".format(self.name, low.name))
         self.set_surplus()
-        self.print_surplus()
+        # self.print_surplus()
         high = self.candidate_highest_surplus()
-        # if high is not None: print("{} Cand with highest surplus is {} ".format(self.name, high.name)) if high is
-        # not None: print("{} candidate {}. Can we distribute their surplus {}.".format(self.name, high.name,
-        # self.test_distribute_surplus(high)))
-        self.transfers_to_candidate(high.first_votes)
-        print("Non Transferable papers = {} ".format(len(self.non_transferable[0])))
-        print("Sum of transferable papers = {}".format(len(self.transfer_votes)))
+        self.transfers_per_candidate(high.first_votes)
         trans_per_cand = self.transfer_candidate(self.transfer_votes, high.surplus)
-        print(
-            "Number of transferable votes = {} Num total votes = {}".format(self.sum_transferable(self.transfer_votes),
-                                                                            len(high.first_votes)))
-        print("Transfer vote list = {}".format(trans_per_cand))
-        print("The number of transfer votes is {}, the surplus is {}".format(sum(trans_per_cand), high.surplus))
-        print("Sum of proportion_transfer votes = {}".format(
-            sum(self.proportion_amount(self.transfer_candidate(self.transfer_votes, high.surplus), high.surplus))))
+
         vote_per_cand = self.proportion_amount(trans_per_cand, high.surplus)
-        print(vote_per_cand)
-        print(sum(vote_per_cand))
-        print("The count number is {}".format(self.count))
+
+
         self.proportion_transfer(self.transfer_votes, vote_per_cand)
-        print("The count number now is {}".format(self.count))
+        high.surplus_transferred = True
+
         self.print_cand_last_trans()
         cand = self.candidate_highest_surplus()
-        print("The name of the highest candidate is {}".format(cand.name))
+        self.print_candidate_details()
+
+
+
