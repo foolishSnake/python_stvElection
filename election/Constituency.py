@@ -74,6 +74,7 @@ class Constituency:
         for j in self.candidates:
             j.votes_per_count.append(len(j.first_votes))
         self.increase_count()
+        self.non_transferable.append[0]
         return "First count complete for {} @ {}".format(self.name, time.datetime.now())
     # Keep this
     def increase_count(self):
@@ -223,7 +224,7 @@ class Constituency:
                 temp_non_transferable.append(i)
             else:
                 self.transfer_votes[index].append(i)
-        self.non_transferable.append(temp_non_transferable)
+        return len(temp_non_transferable)
 
     def sum_transferable(self, votes):
         """
@@ -257,10 +258,10 @@ class Constituency:
     # Keep this
     def proportion_transfer(self, votes, votes_per_cand):
         """
-        Takes to parameter votes and votes_per_cand. The index of the elements in votes_per_cand is the same index as
+        Takes two parameter votes and votes_per_cand. The index of the elements in votes_per_cand is the same index as
         a candidates index. We take the last vote in the votes for each candidate and transfer the amount of votes they
         require based on the value in votes_per_cand. Append the number of votes transferred to the votes_per_count.
-        Increase the count by 1 by calling increase_count() method.
+        Increase the count by 1 by calling increase_count() method. Update the amount of non_transferable votes.
         :param votes:
         :param votes_per_cand:
         :return:
@@ -270,6 +271,27 @@ class Constituency:
                 self.candidates[index].last_transfer.append(reversed(votes[index]))
             self.candidates[index].votes_per_count.append(len(self.candidates[index].last_transfer))
             self.candidates[index].transferred_votes.append(self.candidates[index].last_transfer.copy())
+        self.increase_count()
+        self.non_transferable.append(0)
+        return None
+
+    def proportion_post_transfer(self, surplus, votes, votes_per_cand):
+        """
+        Transfers votes from a candidates if the candidate got elected due to a transfer. Updates the count number and
+        the amount of non-transferable attributes when finished transferring.
+        :param surplus:
+        :param votes:
+        :param votes_per_cand:
+        :return: None
+        """
+        for index, i in enumerate(votes_per_cand):
+            for j in range(int(i)):
+                self.candidates[index].last_transfer.append(reversed(votes[index]))
+            self.candidates[index].votes_per_count.append(len(self.candidates[index].last_transfer))
+            self.candidates[index].transferred_votes.append(self.candidates[index].last_transfer.copy())
+        if sum(votes_per_cand) < surplus:
+            if len(self.non_transferable) < self.count:
+                self.non_transferable.append(surplus - sum(votes_per_cand))
         self.increase_count()
         return None
 
@@ -359,6 +381,18 @@ class Constituency:
 
         return number_transferrable
 
+    def check_surplus(self):
+        """
+        Test elected candidtae to see if any have a surplus of votes
+        :return: Boolean
+        """
+        for i in self.elected_cand:
+            if i.surplus > 0:
+                return True
+            else:
+                return False
+
+
     def test_distribute_surplus(self, cand):
         """
         Test if the surplus a candidate has can de distributed
@@ -426,9 +460,34 @@ class Constituency:
                     self.transfer_round + lowest_cand.num_votes
                     print(lowest_cand.name + " Excluded")
 
+    def next_transfer(self):
+        self.num_transferrable()
+        if self.check_surplus():
+            cand_with_transfer = self.candidate_highest_surplus()
+            if self.test_distribute_surplus(cand_with_transfer):
+                if cand_with_transfer.surplus_transferred:
+                    self.transfers_per_candidate(cand_with_transfer.last_transfer)
+                    trans_per_cand = self.transfer_candidate(self.transfer_votes, cand_with_transfer.surplus)
+                    vote_per_cand = self.proportion_amount(trans_per_cand, cand_with_transfer.surplus)
+                    self.proportion_transfer(self.transfer_votes, vote_per_cand)
+                    self.transfer_votes = []
+                else:
+                    self.transfers_per_candidate(cand_with_transfer.first_votes)
+                    trans_per_cand = self.transfer_candidate(self.transfer_votes, cand_with_transfer.surplus)
+                    vote_per_cand = self.proportion_amount(trans_per_cand, cand_with_transfer.surplus)
+                    self.proportion_transfer(self.transfer_votes, vote_per_cand)
+                    cand_with_transfer.surplus_transferred = True
+                    self.transfer_votes = []
+
+
+        else:
+            print()
+
+
+
     def print_candidate_details(self):
         """
-        Test method used to ptint the details if candidate attributes
+        Test method used to print the details of candidate attributes
         :return:
         """
         for i in self.candidates:
@@ -444,6 +503,7 @@ class Constituency:
             print("Do they get expenses back: {}".format(i.return_expenses))
             print("Current surplus: {}".format(i.surplus))
             print("Have they had a surplus transferred: {}".format(i.surplus_transferred))
+            print("Amount of available transfers: {}".format(i.tr))
             print("-----------------------------------------------------------------------------")
 
     def count_ballot(self):
