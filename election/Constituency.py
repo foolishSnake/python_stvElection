@@ -74,7 +74,7 @@ class Constituency:
         for j in self.candidates:
             j.votes_per_count.append(len(j.first_votes))
         self.increase_count()
-        self.non_transferable.append[0]
+        self.non_transferable.append(0)
         return "First count complete for {} @ {}".format(self.name, time.datetime.now())
     # Keep this
     def increase_count(self):
@@ -399,12 +399,11 @@ class Constituency:
         :param cand: Candidate Object that has surplus votes.
         :return: Boolean True if the rule is met and False if not.
         """
-        num_transfers = self.number_transferrable()
-        for i in self.available_cand:
-            if i.num_votes + num_transfers >= self.expenses_quota or i.num_votes + num_transfers >= self.quota:
-                return True
-            else:
-                return False
+        num_transfers = len(self.transfer_votes)
+        if cand.num_votes + num_transfers >= self.expenses_quota or cand.num_votes + num_transfers >= self.quota:
+            return True
+        else:
+            return False
 
     def candidate_highest_surplus(self):
         """
@@ -417,7 +416,7 @@ class Constituency:
             if i.surplus > 0 and len(high_surplus) == 0:
                 high_surplus.append(i)
             else:
-                if i.surplus > + high_surplus[0].surplus:
+                if i.surplus > high_surplus[0].surplus:
                     high_surplus[0] = i
                 else:
                     if i.surplus == high_surplus[0].surplus:
@@ -470,6 +469,10 @@ class Constituency:
                     trans_per_cand = self.transfer_candidate(self.transfer_votes, cand_with_transfer.surplus)
                     vote_per_cand = self.proportion_amount(trans_per_cand, cand_with_transfer.surplus)
                     self.proportion_transfer(self.transfer_votes, vote_per_cand)
+                    if sum(vote_per_cand) < cand_with_transfer.surplus:
+                        self.non_transferable.append(cand_with_transfer.surplus - sum(vote_per_cand))
+                        cand_with_transfer.votes_per_count.append(cand_with_transfer.surplus)
+                        cand_with_transfer.surplus = 0
                     self.transfer_votes = []
                 else:
                     self.transfers_per_candidate(cand_with_transfer.first_votes)
@@ -477,6 +480,8 @@ class Constituency:
                     vote_per_cand = self.proportion_amount(trans_per_cand, cand_with_transfer.surplus)
                     self.proportion_transfer(self.transfer_votes, vote_per_cand)
                     cand_with_transfer.surplus_transferred = True
+                    cand_with_transfer.votes_per_count.append(cand_with_transfer.surplus)
+                    cand_with_transfer.surplus = 0
                     self.transfer_votes = []
 
 
@@ -503,7 +508,7 @@ class Constituency:
             print("Do they get expenses back: {}".format(i.return_expenses))
             print("Current surplus: {}".format(i.surplus))
             print("Have they had a surplus transferred: {}".format(i.surplus_transferred))
-            print("Amount of available transfers: {}".format(i.tr))
+            print("Amount of available transfers: {}".format(len(self.transfer_votes)))
             print("-----------------------------------------------------------------------------")
 
     def count_ballot(self):
@@ -516,15 +521,16 @@ class Constituency:
         low = self.lowest_votes()
         self.set_surplus()
         # self.print_surplus()
-        high = self.candidate_highest_surplus()
-        self.transfers_per_candidate(high.first_votes)
-        trans_per_cand = self.transfer_candidate(self.transfer_votes, high.surplus)
-
-        vote_per_cand = self.proportion_amount(trans_per_cand, high.surplus)
-
-
-        self.proportion_transfer(self.transfer_votes, vote_per_cand)
-        high.surplus_transferred = True
+        # high = self.candidate_highest_surplus()
+        # self.transfers_per_candidate(high.first_votes)
+        # trans_per_cand = self.transfer_candidate(self.transfer_votes, high.surplus)
+        #
+        # vote_per_cand = self.proportion_amount(trans_per_cand, high.surplus)
+        #
+        #
+        # self.proportion_transfer(self.transfer_votes, vote_per_cand)
+        # high.surplus_transferred = True
+        self.next_transfer()
 
         self.print_cand_last_trans()
         cand = self.candidate_highest_surplus()
