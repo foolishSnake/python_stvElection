@@ -30,6 +30,14 @@ class Candidate:
             votes += i
         return votes
 
+    @property
+    def num_last_transfer(self):
+        return len(self.last_transfer)
+
+    @property
+    def num_first_count(self):
+        return len(self.first_votes)
+
     def number_transfers(self, quota):
         """
         currently not in use.

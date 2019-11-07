@@ -148,6 +148,26 @@ class Constituency:
                 # Draw lots to pick lowest candidate
                 return low_first[randrange(len(low_first))]
 
+    def next_lowest(self, lowest_cand):
+        copy_available = self.available_cand.copy()
+        copy_available.remove(lowest_cand)
+        next_lowest = min(copy_available, key=attrgetter('num_votes'))
+        all_low = [next_lowest]
+        copy_available.remove(next_lowest)
+        for i in copy_available:
+            if i.num_votes == next_lowest.num_votes:
+                all_low.append(i)
+        if len(all_low) == 1:
+            return all_low[0]
+        else:
+            low_last_trans = min(all_low, key=attrgetter('num_last_transfer'))
+            all_low.remove(low_last_trans)
+            if len(all_low) == 1:
+                return low_last_trans
+            else:
+                low_first_count =
+
+
 
 
 
@@ -449,7 +469,8 @@ class Constituency:
 
 
     def eliminate_cand(self):
-        for i in range(3):
+        eliminated_list = []
+        for i in self.available_cand:
             print("eliminate_cand is running " + str(i))
             lowest_cand = self.lowest_votes()
             if lowest_cand is not None:
@@ -457,8 +478,18 @@ class Constituency:
                 if lowest_cand.num_votes + self.transfer_round < self.expenses_quota:
                     lowest_cand.excluded = True
                     self.eliminated_cand.append(lowest_cand)
+                    eliminated_list.append(lowest_cand)
                     self.transfer_round + lowest_cand.num_votes
                     print(lowest_cand.name + " Excluded")
+        return eliminated_list
+
+    def eliminate_cand_over_expenses(self):
+        eliminate_list = []
+        for i in self.available_cand:
+            lowest_cand = self.lowest_votes()
+            next_lowest = self.next_lowest()
+            if lowest_cand is not None:
+                if lowest_cand.num_votes + self.transfer_round
 
     def next_transfer(self):
         self.num_transferrable()
@@ -484,10 +515,14 @@ class Constituency:
                     cand_with_transfer.votes_per_count.append(cand_with_transfer.surplus)
                     cand_with_transfer.surplus = 0
                     self.transfer_votes = []
-
-
         else:
-            print()
+            available_transfers = 0
+            if self.check_surplus():
+                for i in self.elected_cand:
+                    available_transfers += i.surplus
+
+
+
 
 
 
