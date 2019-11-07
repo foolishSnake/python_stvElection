@@ -383,7 +383,7 @@ class Constituency:
 
     def check_surplus(self):
         """
-        Test elected candidtae to see if any have a surplus of votes
+        Test elected candidate to see if any have a surplus of votes
         :return: Boolean
         """
         for i in self.elected_cand:
@@ -415,6 +415,7 @@ class Constituency:
         for i in self.elected_cand:
             if i.surplus > 0 and len(high_surplus) == 0:
                 high_surplus.append(i)
+                continue
             else:
                 if i.surplus > high_surplus[0].surplus:
                     high_surplus[0] = i
@@ -520,7 +521,7 @@ class Constituency:
         # self.print_available_cand()
         low = self.lowest_votes()
         self.set_surplus()
-        # self.print_surplus()
+        self.print_surplus()
         # high = self.candidate_highest_surplus()
         # self.transfers_per_candidate(high.first_votes)
         # trans_per_cand = self.transfer_candidate(self.transfer_votes, high.surplus)
@@ -533,7 +534,7 @@ class Constituency:
         self.next_transfer()
 
         self.print_cand_last_trans()
-        cand = self.candidate_highest_surplus()
+        # cand = self.candidate_highest_surplus()
         self.print_candidate_details()
 
 
