@@ -165,10 +165,7 @@ class Constituency:
             if len(all_low) == 1:
                 return low_last_trans
             else:
-                low_first_count =
-
-
-
+                return all_low[randrange(len(all_low))]
 
 
     # Remove this method after testing
@@ -276,7 +273,7 @@ class Constituency:
                 votes_per_cand.append((len(i) * surplus) / transferable)
         return votes_per_cand
     # Keep this
-    def proportion_transfer(self, votes, votes_per_cand):
+    def proportion_transfer(self, surplus, votes, votes_per_cand):
         """
         Takes two parameter votes and votes_per_cand. The index of the elements in votes_per_cand is the same index as
         a candidates index. We take the last vote in the votes for each candidate and transfer the amount of votes they
@@ -289,11 +286,22 @@ class Constituency:
         for index, i in enumerate(votes_per_cand):
             for j in range(int(i)):
                 self.candidates[index].last_transfer.append(reversed(votes[index]))
-            self.candidates[index].votes_per_count.append(len(self.candidates[index].last_transfer))
-            self.candidates[index].transferred_votes.append(self.candidates[index].last_transfer.copy())
-        self.increase_count()
+
         self.non_transferable.append(0)
         return None
+
+    def candidate_votes_update(self, last_trans):
+        for i in self.candidates:
+            if i in self.available_cand:
+                i.votes_per_count.append(len(i.last_transfer))
+                i.transferred_votes.append(i.last_transfer.copy)
+            else:
+                if i not in last_trans:
+                    i.votes_per_count.append(0)
+        for i in last_trans:
+            i.votes_per_count.append(i.surplus * -1)
+        self.increase_count()
+
 
     def proportion_post_transfer(self, surplus, votes, votes_per_cand):
         """
@@ -307,12 +315,8 @@ class Constituency:
         for index, i in enumerate(votes_per_cand):
             for j in range(int(i)):
                 self.candidates[index].last_transfer.append(reversed(votes[index]))
-            self.candidates[index].votes_per_count.append(len(self.candidates[index].last_transfer))
-            self.candidates[index].transferred_votes.append(self.candidates[index].last_transfer.copy())
         if sum(votes_per_cand) < surplus:
-            if len(self.non_transferable) < self.count:
                 self.non_transferable.append(surplus - sum(votes_per_cand))
-        self.increase_count()
         return None
 
     def print_cand_last_trans(self):
@@ -489,7 +493,8 @@ class Constituency:
             lowest_cand = self.lowest_votes()
             next_lowest = self.next_lowest()
             if lowest_cand is not None:
-                if lowest_cand.num_votes + self.transfer_round
+                if self.transfer_round + lowest_cand.num_votes + next_lowest:
+                    print()
 
     def next_transfer(self):
         self.num_transferrable()
@@ -500,7 +505,7 @@ class Constituency:
                     self.transfers_per_candidate(cand_with_transfer.last_transfer)
                     trans_per_cand = self.transfer_candidate(self.transfer_votes, cand_with_transfer.surplus)
                     vote_per_cand = self.proportion_amount(trans_per_cand, cand_with_transfer.surplus)
-                    self.proportion_transfer(self.transfer_votes, vote_per_cand)
+                    self.proportion_transfer(cand_with_transfer.surplus, self.transfer_votes, vote_per_cand)
                     if sum(vote_per_cand) < cand_with_transfer.surplus:
                         self.non_transferable.append(cand_with_transfer.surplus - sum(vote_per_cand))
                         cand_with_transfer.votes_per_count.append(cand_with_transfer.surplus)
@@ -510,7 +515,7 @@ class Constituency:
                     self.transfers_per_candidate(cand_with_transfer.first_votes)
                     trans_per_cand = self.transfer_candidate(self.transfer_votes, cand_with_transfer.surplus)
                     vote_per_cand = self.proportion_amount(trans_per_cand, cand_with_transfer.surplus)
-                    self.proportion_transfer(self.transfer_votes, vote_per_cand)
+                    self.proportion_transfer(cand_with_transfer.surplus, self.transfer_votes, vote_per_cand)
                     cand_with_transfer.surplus_transferred = True
                     cand_with_transfer.votes_per_count.append(cand_with_transfer.surplus)
                     cand_with_transfer.surplus = 0
