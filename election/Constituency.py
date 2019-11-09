@@ -17,6 +17,7 @@ class Constituency:
         self.num_seats = 0
         self.candidates = []
         self.ballot = []
+        self.total_surplus = 0
         self.transfer_votes = []
         self.elected_cand = []
         self.eliminated_cand = []
@@ -63,7 +64,7 @@ class Constituency:
     def first_count(self):
         """
         Does the first count. Reads the ballot attribute, copies a vote for each first preference to the relevant
-         candidate. Appends the number of first round votes to the votes_per_count attribute.
+         candidate. Appends the number of first votes to the votes_per_count attribute.
         :return:
         """
         for vote in self.ballot:
@@ -73,7 +74,6 @@ class Constituency:
 
         for j in self.candidates:
             j.votes_per_count.append(len(j.first_votes))
-        self.increase_count()
         self.non_transferable.append(0)
         return "First count complete for {} @ {}".format(self.name, time.datetime.now())
     # Keep this
@@ -166,6 +166,10 @@ class Constituency:
                 return low_last_trans
             else:
                 return all_low[randrange(len(all_low))]
+
+    def highest_continuing(self):
+        highest = max(self.available_cand, key=attrgetter('num_votes'))
+        return highest
 
 
     # Remove this method after testing
@@ -412,22 +416,29 @@ class Constituency:
         """
         for i in self.elected_cand:
             if i.surplus > 0:
-                return True
-            else:
-                return False
+                self.total_surplus += i.surplus
 
-
-    def test_distribute_surplus(self, cand):
-        """
-        Test if the surplus a candidate has can de distributed
-        :param cand: Candidate Object that has surplus votes.
-        :return: Boolean True if the rule is met and False if not.
-        """
-        num_transfers = len(self.transfer_votes)
-        if cand.num_votes + num_transfers >= self.expenses_quota or cand.num_votes + num_transfers >= self.quota:
+        if self.total_surplus > 0:
             return True
         else:
             return False
+
+
+    def test_distribute_surplus(self):
+        """
+        Tests if a surplus can be distributed As per ELECTORAL ACT 1992
+        (As amended by the Electoral (Amendment) Act 2001) Section 121 - 8
+        :param None:
+        :return: Boolean False if rule is met andTrue if not met.
+        """
+        lowest_cand = self.lowest_votes()
+        if self.total_surplus < self.quota - self.highest_continuing().num_votes \
+                and self.total_surplus < self.next_lowest(lowest_cand).num_votes - lowest_cand.num_votes \
+                and self.total_surplus + lowest_cand.num_votes < self.expenses_quota \
+                or not lowest_cand.return_expenses:
+            return False
+        else:
+            return True
 
     def candidate_highest_surplus(self):
         """
@@ -500,7 +511,7 @@ class Constituency:
         self.num_transferrable()
         if self.check_surplus():
             cand_with_transfer = self.candidate_highest_surplus()
-            if self.test_distribute_surplus(cand_with_transfer):
+            if self.test_distribute_surplus():
                 if cand_with_transfer.surplus_transferred:
                     self.transfers_per_candidate(cand_with_transfer.last_transfer)
                     trans_per_cand = self.transfer_candidate(self.transfer_votes, cand_with_transfer.surplus)
@@ -556,12 +567,13 @@ class Constituency:
         self.set_available_cand()
         self.set_quota()
         self.first_count()
+        self.increase_count()
         self.print_first()
         self.check_elected()
-        # self.print_available_cand()
-        low = self.lowest_votes()
         self.set_surplus()
-        self.print_surplus()
+        # self.print_available_cand()
+        # low = self.lowest_votes()
+        # self.print_surplus()
         # high = self.candidate_highest_surplus()
         # self.transfers_per_candidate(high.first_votes)
         # trans_per_cand = self.transfer_candidate(self.transfer_votes, high.surplus)
