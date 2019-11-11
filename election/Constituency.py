@@ -121,32 +121,47 @@ class Constituency:
     # Keep this method
     def lowest_votes(self):
         """
+        AS per the ELECTORAL ACT 1992 (As amended by the Electoral (Amendment) Act 2001) Section 122 - (3)
         Read the number votes each candidates in available_cand have. If a Candidate has a unique low vote count its
         object is returned. If 2 or more candidates have the same number of votes, we pick the candidate with the lowest
          number of first count votes and return it. If 2 or more candidates have a equal number of first votes we draw
          lot using randint() to decided what candidate object gets returned.
+
         :return: Candidate object
         """
-        lowest_votes = 99999999999
+        sorted_cand = sorted(self.available_cand, key=lambda candidate: candidate.num_votes)
         lowest_cand = []
         for i in self.available_cand:
-            if i.num_votes <= lowest_votes:
+            if sorted_cand[0].num_votes == i.num_votes:
                 lowest_cand.append(i)
-                lowest_votes = i.num_votes
         if len(lowest_cand) == 1:
             return lowest_cand[0]
-        if len(lowest_cand) > 1:
-            low_first = []
-            lowest_first = 9999999999
-            for i in lowest_cand:
-                if len(i.first_votes) <= lowest_first:
-                    low_first.append(i)
-                    lowest_first = len(i.first_votes)
-            if len(low_first) == 1:
-                return low_first[0]
+        else:
+            lowest = self.low_per_count(lowest_cand)
+            if not lowest:
+                return lowest
             else:
+                for i in low_first:
+                    for j in range(1, len(low_first[0].votes_per_count))
                 # Draw lots to pick lowest candidate
                 return low_first[randrange(len(low_first))]
+
+    def low_per_count(self, cand):
+        for i in range(self.count):
+            sorted_cand = sorted(cand, key=lambda candidate: candidate.votes_per_count[i])
+            if sorted_cand[0].votes_per_count[i] < sorted_cand[1].votes_per_count[i]:
+                return [sorted_cand[0]]
+            else:
+                for j in sorted_cand:
+                    if j.votes_per_count[i] != sorted_cand[0].votes_per_count[i]:
+                        cand.remove(j)
+
+        return cand
+
+
+
+
+
 
     def next_lowest(self, lowest_cand):
         copy_available = self.available_cand.copy()
@@ -484,9 +499,17 @@ class Constituency:
 
 
     def eliminate_cand(self):
+        sorted_cand = sorted(self.available_cand, key=lambda candidate: candidate.num_votes)
         eliminated_list = []
-        for i in self.available_cand:
-            print("eliminate_cand is running " + str(i))
+        lowset_cand = self.lowest_votes()
+        if sorted_cand[0].num_votes == sorted_cand[1].num_votes:
+
+
+        else:
+            sorted_cand[0].excluded = True
+            eliminated_list.append(sorted_cand[0])
+        for index, i in enumerate(sorted_cand):
+            if i.num_votes <
             lowest_cand = self.lowest_votes()
             if lowest_cand is not None:
                 print(lowest_cand.name + " Before Excluded")
