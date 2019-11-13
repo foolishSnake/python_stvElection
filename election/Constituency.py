@@ -139,7 +139,7 @@ class Constituency:
             if len(lowest) == 1:
                 return lowest[0]
             else:
-                return lowest[randrange(len(lowest))]
+                return self.draw_lots(lowest)
 
     def lowest_per_count(self, cand):
         """
@@ -157,32 +157,30 @@ class Constituency:
                 for j in sorted_cand:
                     if j.votes_per_count[i] != sorted_cand[0].votes_per_count[i]:
                         cand.remove(j)
-
         return cand
 
+    def draw_lots(self, candidates):
+        """
+        Randomley selectes a candidate for a list
+        :param candidates: List of candidate objects
+        :return: a candidate object
+        """
+        return candidates[randrange(len(candidates))]
 
-
-
-
-
-    def next_lowest(self, lowest_cand):
-        copy_available = self.available_cand.copy()
-        copy_available.remove(lowest_cand)
-        next_lowest = min(copy_available, key=attrgetter('num_votes'))
-        all_low = [next_lowest]
-        copy_available.remove(next_lowest)
-        for i in copy_available:
-            if i.num_votes == next_lowest.num_votes:
-                all_low.append(i)
-        if len(all_low) == 1:
-            return all_low[0]
+    def second_lowest(self, lowest_cand):
+        """
+        Find the continuing candidate with the second lowest number of votes. Will apply rules a case were multiple
+        candidate have a equal number of votes.
+        :param lowest_cand: candidate object for the current lowest candidate
+        :return: candidate object for the candidate with the lowest votes
+        """
+        sorted_cand = sorted(self.available_cand, key=lambda candidate: candidate.num_votes)
+        sorted_cand.remove(lowest_cand)
+        second_lowest = self.lowest_per_count(sorted_cand)
+        if len(second_lowest) == 1:
+            return second_lowest[0]
         else:
-            low_last_trans = min(all_low, key=attrgetter('num_last_transfer'))
-            all_low.remove(low_last_trans)
-            if len(all_low) == 1:
-                return low_last_trans
-            else:
-                return all_low[randrange(len(all_low))]
+            return self.draw_lots(second_lowest)
 
     def highest_continuing(self):
         highest = max(self.available_cand, key=attrgetter('num_votes'))
@@ -504,7 +502,7 @@ class Constituency:
         sorted_cand = sorted(self.available_cand, key=lambda candidate: candidate.num_votes)
         eliminated_list = []
         lowset_cand = self.lowest_votes()
-        if sorted_cand[0].num_votes == sorted_cand[1].num_votes:
+        second_lowest = sorted_cand.remove(lowset_cand)
 
 
         else:
