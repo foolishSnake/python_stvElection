@@ -39,6 +39,7 @@ class Constituency:
         """
         for i in self.candidates:
             self.available_cand.append(i)
+
     # ?
     def available_cand_remove(self, cand):
         """
@@ -47,6 +48,7 @@ class Constituency:
         :return:
         """
         self.available_cand.remove(cand)
+
     # Keep this
     def set_quota(self):
         """
@@ -60,6 +62,7 @@ class Constituency:
             self.expenses_quota = int(self.quota / 4)
 
         return "Quota and expenses quota calculated @ {}".format(time.datetime.now())
+
     # Keep this
     def first_count(self):
         """
@@ -76,11 +79,13 @@ class Constituency:
             j.votes_per_count.append(len(j.first_votes))
         self.non_transferable.append(0)
         return "First count complete for {} @ {}".format(self.name, time.datetime.now())
+
     # Keep this
     def increase_count(self):
-        "Increases the count attribute by 1"
+        """
+        Increases the count attribute by 1
+        """
         self.count += 1
-
 
     # Remove after testing
     def print_first(self):
@@ -119,7 +124,7 @@ class Constituency:
         print("")
 
     # Keep this method
-    def lowest_votes(self):
+    def lowest_votes(self, candidates):
         """
         AS per the ELECTORAL ACT 1992 (As amended by the Electoral (Amendment) Act 2001) Section 122 - (3)
         Test number of votes each candidate has an returns the candidate object for the lowest candidate. If the number
@@ -127,7 +132,7 @@ class Constituency:
         returns more than one candidate object, random select a candidate as the lowest.
         :return: Candidate object
         """
-        sorted_cand = sorted(self.available_cand, key=lambda candidate: candidate.num_votes)
+        sorted_cand = sorted(candidates, key=lambda candidate: candidate.num_votes)
         lowest_cand = []
         for i in self.available_cand:
             if sorted_cand[0].num_votes == i.num_votes:
@@ -185,7 +190,6 @@ class Constituency:
     def highest_continuing(self):
         highest = max(self.available_cand, key=attrgetter('num_votes'))
         return highest
-
 
     # Remove this method after testing
     def print_elected(self):
@@ -291,6 +295,7 @@ class Constituency:
                 # As per ELECTORAL ACT 1992(As amended by the Electoral (Amendment) Act 2001) Section 121 - 6 (b)
                 votes_per_cand.append((len(i) * surplus) / transferable)
         return votes_per_cand
+
     # Keep this
     def proportion_transfer(self, surplus, votes, votes_per_cand):
         """
@@ -321,7 +326,6 @@ class Constituency:
             i.votes_per_count.append(i.surplus * -1)
         self.increase_count()
 
-
     def proportion_post_transfer(self, surplus, votes, votes_per_cand):
         """
         Transfers votes from a candidates if the candidate got elected due to a transfer. Updates the count number and
@@ -335,7 +339,7 @@ class Constituency:
             for j in range(int(i)):
                 self.candidates[index].last_transfer.append(reversed(votes[index]))
         if sum(votes_per_cand) < surplus:
-                self.non_transferable.append(surplus - sum(votes_per_cand))
+            self.non_transferable.append(surplus - sum(votes_per_cand))
         return None
 
     def print_cand_last_trans(self):
@@ -398,7 +402,6 @@ class Constituency:
                             continue
         return vote_amount
 
-
     def set_surplus(self):
         """ Sets the surplus attribute for a candidate """
         for i in self.elected_cand:
@@ -438,7 +441,6 @@ class Constituency:
         else:
             return False
 
-
     def test_distribute_surplus(self):
         """
         Tests if a surplus can be distributed As per ELECTORAL ACT 1992
@@ -446,9 +448,9 @@ class Constituency:
         :param None:
         :return: Boolean False if rule is met andTrue if not met.
         """
-        lowest_cand = self.lowest_votes()
+        lowest_cand = self.lowest_votes(self.available_cand)
         if self.total_surplus < self.quota - self.highest_continuing().num_votes \
-                and self.total_surplus < self.next_lowest(lowest_cand).num_votes - lowest_cand.num_votes \
+                and self.total_surplus < self.second_lowest(lowest_cand).num_votes - lowest_cand.num_votes \
                 and self.total_surplus + lowest_cand.num_votes < self.expenses_quota \
                 or not lowest_cand.return_expenses:
             return False
@@ -497,38 +499,36 @@ class Constituency:
                             cand_high_first.append(high_votes_cand[index])
                 return cand_high_first[randrange(len(cand_high_first))]
 
-
     def eliminate_cand(self):
         sorted_cand = sorted(self.available_cand, key=lambda candidate: candidate.num_votes)
-        eliminated_list = []
-        lowset_cand = self.lowest_votes()
-        second_lowest = sorted_cand.remove(lowset_cand)
-
-
-        else:
-            sorted_cand[0].excluded = True
-            eliminated_list.append(sorted_cand[0])
-        for index, i in enumerate(sorted_cand):
-            if i.num_votes <
-            lowest_cand = self.lowest_votes()
-            if lowest_cand is not None:
-                print(lowest_cand.name + " Before Excluded")
-                if lowest_cand.num_votes + self.transfer_round < self.expenses_quota:
-                    lowest_cand.excluded = True
-                    self.eliminated_cand.append(lowest_cand)
-                    eliminated_list.append(lowest_cand)
-                    self.transfer_round + lowest_cand.num_votes
-                    print(lowest_cand.name + " Excluded")
-        return eliminated_list
-
-    def eliminate_cand_over_expenses(self):
         eliminate_list = []
-        for i in self.available_cand:
-            lowest_cand = self.lowest_votes()
-            next_lowest = self.next_lowest()
-            if lowest_cand is not None:
-                if self.transfer_round + lowest_cand.num_votes + next_lowest:
-                    print()
+        exclusion = []
+        possible_transfer = self.total_surplus
+        for i in range(len(self.available_cand)):
+            lowest_cand = self.lowest_votes(sorted_cand)
+            eliminate_list.append(lowest_cand)
+            sorted_cand.remove(lowest_cand)
+
+        for index, i in enumerate(eliminate_list):
+            if index == 0:
+                exclusion.append(i)
+                possible_transfer += i.num_votes
+            if 0 < index < len(eliminate_list) - 1:
+                if possible_transfer < i.num_votes and \
+                        (i.return_expenses or possible_transfer + i.num_votes > self.expenses_quota):
+                    exclusion.append(i)
+                    possible_transfer += i.num_votes
+        return exclusion
+
+    # Don't think I need this any more'
+    # def eliminate_cand_over_expenses(self):
+    #     eliminate_list = []
+    #     for i in self.available_cand:
+    #         lowest_cand = self.lowest_votes()
+    #         next_lowest = self.next_lowest()
+    #         if lowest_cand is not None:
+    #             if self.transfer_round + lowest_cand.num_votes + next_lowest:
+    #                 print()
 
     def next_transfer(self):
         self.num_transferrable()
@@ -560,11 +560,6 @@ class Constituency:
                 for i in self.elected_cand:
                     available_transfers += i.surplus
 
-
-
-
-
-
     def print_candidate_details(self):
         """
         Test method used to print the details of candidate attributes
@@ -577,7 +572,8 @@ class Constituency:
             print("Number last transferred votes: {}".format(len(i.last_transfer)))
             print("The total number of votes is: {}".format(i.num_votes))
             print("The total transferred votes is: {}".format(len(i.transferred_votes)))
-            print("Number of counts: {}, Sum of votes per count {}".format(len(i.votes_per_count), sum(i.votes_per_count)))
+            print("Number of counts: {}, Sum of votes per count {}".format(len(i.votes_per_count),
+                                                                           sum(i.votes_per_count)))
             print("Are they elected: {}".format(i.elected))
             print("Are they eliminted: {}".format(i.excluded))
             print("Do they get expenses back: {}".format(i.return_expenses))
@@ -611,6 +607,3 @@ class Constituency:
         self.print_cand_last_trans()
         # cand = self.candidate_highest_surplus()
         self.print_candidate_details()
-
-
-
