@@ -58,7 +58,7 @@ class Constituency:
         :return:
         """
         self.available_cand.remove(cand)
-        self.write_log("Candidate {} removed Constituency.available)cand_remove method")
+        self.write_log("Constituency.available_cand_remove method has removed {} from constituency.available_cand list".format(cand.name))
 
     # Keep this
     def set_quota(self):
@@ -160,7 +160,7 @@ class Constituency:
         for i in self.available_cand:
             if sorted_cand[0].num_votes == i.num_votes:
                 lowest_cand.append(i)
-                self.write_log("Constituency.lowest_votes method: Lowest Number of votes {} ane {}".format(i.name, i.num_votes))
+                self.write_log("Constituency.lowest_votes method: Lowest Number of votes {} are {}".format(i.name, i.num_votes))
         if len(lowest_cand) == 1:
             return lowest_cand[0]
         else:
@@ -195,11 +195,13 @@ class Constituency:
 
     def draw_lots(self, candidates):
         """
-        Randomley selectes a candidate for a list
+        Randomly select a candidate for a list
         :param candidates: List of candidate objects
         :return: a candidate object
         """
-        return candidates[randrange(len(candidates))]
+        lowest_cand = candidates[randrange(len(candidates))]
+        self.write_log("Constituency.draw_lots.\nCandidate {} is randomly selected".format(lowest_cand.name))
+        return lowest_cand
 
     def second_lowest(self, lowest_cand):
         """
@@ -218,6 +220,7 @@ class Constituency:
 
     def highest_continuing(self):
         highest = max(self.available_cand, key=attrgetter('num_votes'))
+        self.write_log("Constituency.higest_continuing\n Highest Continuing is {}".format(highest.name))
         return highest
 
     # Remove this method after testing
@@ -272,7 +275,6 @@ class Constituency:
             if low > vote[j.cand_index] > 1:
                 low = vote[j.cand_index]
                 index = j.cand_index
-
         return index
 
     def transfers_per_candidate(self, votes):
@@ -293,6 +295,7 @@ class Constituency:
                 temp_non_transferable.append(i)
             else:
                 self.transfer_votes[index].append(i)
+        self.write_log("Constituency.transfers_per_candidate method finshed")
         return len(temp_non_transferable)
 
     def sum_transferable(self, votes):
@@ -304,6 +307,7 @@ class Constituency:
         total_transferable = 0
         for i in votes:
             total_transferable += len(i)
+        self.write_log("Constituency.sum_transferable method has returned {}".format(total_transferable))
         return total_transferable
 
     def transfer_candidate(self, votes, surplus):
@@ -323,24 +327,29 @@ class Constituency:
             else:
                 # As per ELECTORAL ACT 1992(As amended by the Electoral (Amendment) Act 2001) Section 121 - 6 (b)
                 votes_per_cand.append((len(i) * surplus) / transferable)
+        self.write_log("Constituency.transfer_candidate method has finished")
         return votes_per_cand
 
     # Keep this
     def proportion_transfer(self, surplus, votes, votes_per_cand):
         """
-        Takes two parameter votes and votes_per_cand. The index of the elements in votes_per_cand is the same index as
+        Takes three parameter surplus, votes and votes_per_cand. The index of the elements in votes_per_cand is the same index as
         a candidates index. We take the last vote in the votes for each candidate and transfer the amount of votes they
         require based on the value in votes_per_cand. Append the number of votes transferred to the votes_per_count.
         Increase the count by 1 by calling increase_count() method. Update the amount of non_transferable votes.
-        :param votes:
-        :param votes_per_cand:
-        :return:
+        :param surplus: number of votes in the surplus
+        :param votes: list of the votes to be transfered
+        :param votes_per_cand: list of the number of votes each candidate has to get
+        :return: None
         """
+        log_str = "Constituency.proportion_transfer method\n"
         for index, i in enumerate(votes_per_cand):
             for j in range(int(i)):
                 self.candidates[index].last_transfer.append(reversed(votes[index]))
+            log_str += "{} gets {} transferred votes.\n".format(i.name, len(i.last_transfer))
 
         self.non_transferable.append(0)
+        self.write_log(log_str)
         return None
 
     def candidate_votes_update(self, last_trans):
@@ -478,15 +487,14 @@ class Constituency:
         :return: Boolean False if rule is met andTrue if not met.
         """
         lowest_cand = self.lowest_votes(self.available_cand)
-        print("First is {}".format(self.total_surplus < self.quota - self.highest_continuing().num_votes))
-        print("Second is {}".format(self.total_surplus < self.second_lowest(lowest_cand).num_votes - lowest_cand.num_votes))
-        print("Third is {}".format(not lowest_cand.return_expenses))
         if self.total_surplus < self.quota - self.highest_continuing().num_votes \
                 and self.total_surplus < self.second_lowest(lowest_cand).num_votes - lowest_cand.num_votes \
                 and (self.total_surplus + lowest_cand.num_votes < self.expenses_quota \
                     or not lowest_cand.return_expenses):
+            self.write_log("Constituency.test_distribute_surplus method: Transfer surplus = {}".format("False"))
             return False
         else:
+            self.write_log("Constituency.test_distribute_surplus method: Transfer surplus = {}".format("True"))
             return True
 
     def candidate_highest_surplus(self):
