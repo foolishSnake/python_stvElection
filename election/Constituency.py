@@ -28,7 +28,14 @@ class Constituency:
 
         # writelog = FileAccess.write_log()
 
-    # def read_ballot(self):
+    def write_log(self, message):
+        log_date = time.datetime.now()
+        log_file = "log_{}_{}_{}.txt".format(log_date.year, log_date.month, log_date.day)
+        try:
+            with open(log_file, 'a') as log:
+                log.write("{} @ {} \n".format(message, log_date))
+        except FileNotFoundError as file_error:
+            print("Could not access the log file " + str(file_error))
     # Keep this
     def set_available_cand(self):
         """
@@ -37,8 +44,11 @@ class Constituency:
 
         :return:
         """
+        self.write_log("Constituency.set_available_cand method called")
         for i in self.candidates:
             self.available_cand.append(i)
+            self.write_log("Candidate {} added to Constituency.available_cand".format(i.name))
+
 
     # ?
     def available_cand_remove(self, cand):
@@ -48,6 +58,7 @@ class Constituency:
         :return:
         """
         self.available_cand.remove(cand)
+        self.write_log("Candidate {} removed Constituency.available)cand_remove method")
 
     # Keep this
     def set_quota(self):
@@ -56,19 +67,20 @@ class Constituency:
         :return: String
         """
         if len(self.ballot) == 0:
-            return "There sre no votes in the ballot @ {}".format(time.datetime.now())
+            return None
         else:
             self.quota = int((len(self.ballot) / (self.num_seats + 1)) + 1)
             self.expenses_quota = int(self.quota / 4)
+        self.write_log("Constituency.set_quota method set quota as {} and expenses_quota {}".format(self.quota, self.expenses_quota))
 
-        return "Quota and expenses quota calculated @ {}".format(time.datetime.now())
+        return None
 
     # Keep this
     def first_count(self):
         """
         Does the first count. Reads the ballot attribute, copies a vote for each first preference to the relevant
          candidate. Appends the number of first votes to the votes_per_count attribute.
-        :return:
+        :return: None
         """
         for vote in self.ballot:
             for index, i in enumerate(vote):
@@ -78,14 +90,22 @@ class Constituency:
         for j in self.candidates:
             j.votes_per_count.append(len(j.first_votes))
         self.non_transferable.append(0)
-        return "First count complete for {} @ {}".format(self.name, time.datetime.now())
+        self.write_log("Constituency.first_count method done first count")
+        for i in self.candidates:
+            self.write_log("Candidate {} Number first votes {}".format(i.name, len(i.first_votes)))
+
+        return None
 
     # Keep this
     def increase_count(self):
         """
         Increases the count attribute by 1
+        :return: None
         """
         self.count += 1
+
+        self.write_log("Constituency.increase_count method. Increased count number to {}".format(self.count))
+        return None
 
     # Remove after testing
     def print_first(self):
@@ -99,22 +119,25 @@ class Constituency:
 
     def check_elected(self):
         """
-
-        :return: str with message for log
+        Test if any candidates are elected
+        :return: None
         """
-
+        log_str = ""
         for i in self.candidates:
             if i not in self.elected_cand:
                 if i.num_votes >= self.expenses_quota:
                     i.return_expenses = True
+                    log_str += "{}, {}".format(i.name, "expenses_quote meet.\n")
                 if i.num_votes >= self.quota:
                     i.elected = True
                     self.elected_cand.append(i)
                     i.set_surplus(self.quota)
                     self.available_cand_remove(i)
                     self.transfer_round += i.surplus
+                    log_str += "{}, {}".format(i.name, "Quota meet.\n")
+        self.write_log("Constituency.check_elected method.\n {}".format(log_str))
 
-        return "Check if any candidates are elected or get expenses @ {}".format(time.datetime.now())
+        return None
 
     # After testing remove this method
     def print_available_cand(self):
@@ -137,6 +160,7 @@ class Constituency:
         for i in self.available_cand:
             if sorted_cand[0].num_votes == i.num_votes:
                 lowest_cand.append(i)
+                self.write_log("Constituency.lowest_votes method: Lowest Number of votes {} ane {}".format(i.name, i.num_votes))
         if len(lowest_cand) == 1:
             return lowest_cand[0]
         else:
@@ -154,14 +178,19 @@ class Constituency:
         :param cand: A list of Candidate objects
         :return: A list of Candidate/s object/s with the lowest number of votes.
         """
+        log_str = "Constituency.lowest_per_count method Candidate with lowest votes.\n"
         for i in range(self.count):
             sorted_cand = sorted(cand, key=lambda candidate: candidate.votes_per_count[i])
             if sorted_cand[0].votes_per_count[i] < sorted_cand[1].votes_per_count[i]:
+                self.write_log("Constituency.lowest_per_count method. {} has the lowest votes".format(sorted_cand[0].name))
                 return [sorted_cand[0]]
             else:
                 for j in sorted_cand:
                     if j.votes_per_count[i] != sorted_cand[0].votes_per_count[i]:
                         cand.remove(j)
+        for i in cand:
+            log_str += "{}\n".format(i.name)
+        self.write_log(log_str)
         return cand
 
     def draw_lots(self, candidates):
