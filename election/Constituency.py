@@ -346,7 +346,7 @@ class Constituency:
         for index, i in enumerate(votes_per_cand):
             for j in range(int(i)):
                 self.candidates[index].last_transfer.append(reversed(votes[index]))
-            log_str += "{} gets {} transferred votes.\n".format(i.name, len(i.last_transfer))
+            log_str += "{} gets {} transferred votes.\n".format(self.candidates[index].name, len(self.candidates[index].last_transfer))
 
         self.non_transferable.append(0)
         self.write_log(log_str)
@@ -441,10 +441,24 @@ class Constituency:
         return vote_amount
 
     def set_surplus(self):
-        """ Sets the surplus attribute for a candidate """
+        """
+        Check if a candidate has any surplus votes.
+        :return: surplus: Bool: True if there are votes False it not
+        """
+        surplus = False
+        log_str = "Constituency.set_surplus. \n"
         for i in self.elected_cand:
             if i.num_votes > self.quota:
                 i.set_surplus(self.quota)
+                surplus = True
+                log_str += "Candidate {} has a surplus of {} votes.\n".format(i.name, i.surplus)
+        if surplus:
+            self.write_log(log_str)
+            return surplus
+        else:
+            log_str += "These are no surplus votes"
+            self.write_log(log_str)
+            return surplus
 
     def print_surplus(self):
         """
@@ -499,45 +513,33 @@ class Constituency:
 
     def candidate_highest_surplus(self):
         """
-        Return the reference for a candidate object with the highest surplus.
-        If the highest surplus is shared by more than one candidate, we poll all candidates and pick one at random.
-        :return:
+        Checks all candidates with a surplus and return the highest surplus.
+        :return: Candidate object for the highest surplus
         """
-        high_surplus = []
-        for i in self.elected_cand:
-            if i.surplus > 0 and len(high_surplus) == 0:
-                high_surplus.append(i)
-                continue
+        log_str = "Constituency.highest.surplus.\n"
+        sorted_elected = sorted(self.elected_cand, key=lambda candidate: candidate.surplus, reverse=True)
+
+        if len(sorted_elected) == 1:
+            return sorted_elected[0]
+        elif sorted_elected[0].surplus > sorted_elected[1].surplus:
+            return sorted_elected[0]
+        else:
+            matching_surplus = []
+            for i in sorted_elected:
+                if i.surplus == sorted_elected[0]:
+                    matching_surplus.append(i)
+
+        for i in range(self.count):
+            sorted_cand = sorted(matching_surplus, key=lambda candidate: candidate.votes_per_count[i], reverse=True)
+            if sorted_cand[0].votes_per_count[i] > sorted_cand[1].votes_per_count[i]:
+                log_str += "Candidate {} has the highest surplus".format(sorted_cand[0].name)
+                self.write_log(log_str)
+                return [sorted_cand[0]]
             else:
-                if i.surplus > high_surplus[0].surplus:
-                    high_surplus[0] = i
-                else:
-                    if i.surplus == high_surplus[0].surplus:
-                        high_surplus.append(i)
-        if len(high_surplus) == 0:
-            return None
-        elif len(high_surplus) == 1:
-            return high_surplus[0]
-        elif len(high_surplus) > 1:
-            high_votes = [i.num_votes for i in high_surplus]
-            high = max(high_votes)
-            if high_votes.count(high) == 1:
-                return high_surplus[high_votes.index(high)]
-            if high_votes.count(high) > 1:
-                high_votes_cand = []
-                for index, i in enumerate(high_votes):
-                    if i == high:
-                        high_votes_cand.append(high_surplus[index])
-                high_first = [len(i.first_votes) for i in high_votes_cand]
-                highest_first = max(high_first)
-                if high_first.count(highest_first) == 1:
-                    return high_surplus[high_first.index(highest_first)]
-                else:
-                    cand_high_first = []
-                    for index, i in enumerate(high_first):
-                        if i == highest_first:
-                            cand_high_first.append(high_votes_cand[index])
-                return cand_high_first[randrange(len(cand_high_first))]
+                cand = self.draw_lots(sorted_cand)
+                log_str += " Draw lot to find highest: Candidate {} has the highest surplus".format(cand.name)
+                self.write_log(log_str)
+                return cand
 
     def eliminate_cand(self):
         sorted_cand = sorted(self.available_cand, key=lambda candidate: candidate.num_votes)
@@ -587,6 +589,7 @@ class Constituency:
                         cand_with_transfer.surplus = 0
                     self.transfer_votes = []
                 else:
+                    print("It ran")
                     self.transfers_per_candidate(cand_with_transfer.first_votes)
                     trans_per_cand = self.transfer_candidate(self.transfer_votes, cand_with_transfer.surplus)
                     vote_per_cand = self.proportion_amount(trans_per_cand, cand_with_transfer.surplus)
@@ -630,6 +633,7 @@ class Constituency:
         self.print_first()
         self.check_elected()
         self.set_surplus()
+        print("Line 633 do we have a surplus {}".format(self.check_surplus()))
         # self.print_available_cand()
         # low = self.lowest_votes()
         # self.print_surplus()

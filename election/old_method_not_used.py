@@ -55,3 +55,45 @@ def precent_transfers(self, candidate):
     #             if i.num_votes < lowest_votes:
     #                 lowest_votes = i.num_votes
     #                 lowest_cand = i
+
+    def candidate_highest_surplus(self):
+        """
+        Return the reference for a candidate object with the highest surplus.
+        If the highest surplus is shared by more than one candidate, we poll all candidates and pick one at random.
+        :return:
+        """
+        high_surplus = []
+        for i in self.elected_cand:
+            if i.surplus > 0 and len(high_surplus) == 0:
+                high_surplus.append(i)
+                continue
+            else:
+                if i.surplus > high_surplus[0].surplus:
+                    high_surplus[0] = i
+                else:
+                    if i.surplus == high_surplus[0].surplus:
+                        high_surplus.append(i)
+        if len(high_surplus) == 0:
+            return None
+        elif len(high_surplus) == 1:
+            return high_surplus[0]
+        elif len(high_surplus) > 1:
+            high_votes = [i.num_votes for i in high_surplus]
+            high = max(high_votes)
+            if high_votes.count(high) == 1:
+                return high_surplus[high_votes.index(high)]
+            if high_votes.count(high) > 1:
+                high_votes_cand = []
+                for index, i in enumerate(high_votes):
+                    if i == high:
+                        high_votes_cand.append(high_surplus[index])
+                high_first = [len(i.first_votes) for i in high_votes_cand]
+                highest_first = max(high_first)
+                if high_first.count(highest_first) == 1:
+                    return high_surplus[high_first.index(highest_first)]
+                else:
+                    cand_high_first = []
+                    for index, i in enumerate(high_first):
+                        if i == highest_first:
+                            cand_high_first.append(high_votes_cand[index])
+                return cand_high_first[randrange(len(cand_high_first))]
