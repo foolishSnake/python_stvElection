@@ -218,10 +218,47 @@ class Constituency:
         else:
             return self.draw_lots(second_lowest)
 
-    def highest_continuing(self):
-        highest = max(self.available_cand, key=attrgetter('num_votes'))
-        self.write_log("Constituency.higest_continuing\n Highest Continuing is {}".format(highest.name))
+    def highest_continuing(self, candidates):
+        """
+        Takes a list of candidates and returns the candidate object for the highest
+        :param candidates: List of candidate objects
+        :return: candidate object
+        """
+        highest = self.highest_candidate(candidates)
+        self.write_log("Constituency.highest_continuing\n Highest Continuing is {}".format(highest.name))
         return highest
+
+    def highest_candidate(self, candidates):
+        """
+        Takes a list of candidates and find the highest candidate.
+        :param candidates: List of candidate objects
+        :return: candidate object
+        """
+        log_str = "Constituency.highest_candidate.\n"
+        sorted_cand = sorted(candidates, key=lambda candidate: candidate.num_votes, reverse=True)
+        if len(candidates) == 1:
+            log_str += "Candidate {} is the highest with {} total votes.".format(sorted_cand[0].name, sorted_cand[0].num_votes)
+            return sorted_cand[0]
+        elif sorted_cand[0].num_votes > sorted_cand[1].num_votes:
+            "Candidate {} is the highest with {} total votes.".format(sorted_cand[0].name, sorted_cand[0].name)
+            return sorted_cand[0]
+        else:
+            equal_cand = []
+            for i in sorted_cand:
+                if i.num_votes == sorted_cand[0].num_votes:
+                    equal_cand.append(i)
+
+            for i in range(self.count):
+                sorted_equal = sorted(equal_cand, key=lambda candidate: candidate.votes_per_count[i], reverse=True)
+            if sorted_equal[0].votes_per_count[i] > sorted_equal[1].votes_per_count[i]:
+                log_str += "Candidate {} has the highest votes of {} for count {}".format(sorted_equal[0].name, sorted_equal[0].votes_per_count[i], i + 1)
+                self.write_log(log_str)
+                return [sorted_equal[0]]
+            else:
+                cand = self.draw_lots(sorted_equal)
+                log_str += " Draw lot to find highest: Candidate {}".format(cand.name)
+                self.write_log(log_str)
+                return cand
 
     # Remove this method after testing
     def print_elected(self):
@@ -501,7 +538,7 @@ class Constituency:
         :return: Boolean False if rule is met andTrue if not met.
         """
         lowest_cand = self.lowest_votes(self.available_cand)
-        if self.total_surplus < self.quota - self.highest_continuing().num_votes \
+        if self.total_surplus < self.quota - self.highest_continuing(self.available_cand).num_votes \
                 and self.total_surplus < self.second_lowest(lowest_cand).num_votes - lowest_cand.num_votes \
                 and (self.total_surplus + lowest_cand.num_votes < self.expenses_quota \
                     or not lowest_cand.return_expenses):
