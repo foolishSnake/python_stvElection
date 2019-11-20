@@ -238,9 +238,11 @@ class Constituency:
         sorted_cand = sorted(candidates, key=lambda candidate: candidate.num_votes, reverse=True)
         if len(candidates) == 1:
             log_str += "Candidate {} is the highest with {} total votes.".format(sorted_cand[0].name, sorted_cand[0].num_votes)
+            self.write_log(log_str)
             return sorted_cand[0]
         elif sorted_cand[0].num_votes > sorted_cand[1].num_votes:
             "Candidate {} is the highest with {} total votes.".format(sorted_cand[0].name, sorted_cand[0].name)
+            self.write_log(log_str)
             return sorted_cand[0]
         else:
             equal_cand = []
@@ -557,8 +559,10 @@ class Constituency:
         sorted_elected = sorted(self.elected_cand, key=lambda candidate: candidate.surplus, reverse=True)
 
         if len(sorted_elected) == 1:
+            log_str += "Candidate with highest surplus is {}".format(sorted_elected[0].name)
             return sorted_elected[0]
         elif sorted_elected[0].surplus > sorted_elected[1].surplus:
+            log_str += "Candidate with highest surplus is {}".format(sorted_elected[0].name)
             return sorted_elected[0]
         else:
             matching_surplus = []
@@ -566,17 +570,10 @@ class Constituency:
                 if i.surplus == sorted_elected[0]:
                     matching_surplus.append(i)
 
-        for i in range(self.count):
-            sorted_cand = sorted(matching_surplus, key=lambda candidate: candidate.votes_per_count[i], reverse=True)
-            if sorted_cand[0].votes_per_count[i] > sorted_cand[1].votes_per_count[i]:
-                log_str += "Candidate {} has the highest surplus".format(sorted_cand[0].name)
-                self.write_log(log_str)
-                return [sorted_cand[0]]
-            else:
-                cand = self.draw_lots(sorted_cand)
-                log_str += " Draw lot to find highest: Candidate {} has the highest surplus".format(cand.name)
-                self.write_log(log_str)
-                return cand
+            cand = self.highest_candidate(matching_surplus)
+            log_str += "Candidate with highest surplus is {}".format(cand.name)
+            self.write_log(log_str)
+            return cand
 
     def eliminate_cand(self):
         sorted_cand = sorted(self.available_cand, key=lambda candidate: candidate.num_votes)
