@@ -391,17 +391,27 @@ class Constituency:
         self.write_log(log_str)
         return None
 
-    def candidate_votes_update(self, last_trans):
-        for i in self.candidates:
-            if i in self.available_cand:
-                i.votes_per_count.append(len(i.last_transfer))
+    def candidate_votes_update(self):
+        """
+        Copies the votes lasted transferred to the transferred_votes list. adds the number of votes to the
+        votes_per_count attribute. Sets the last_transfer to and empty list
+        :return:
+        """
+        log_str = "Candidate_votes_update method\n"
+        for i in self.available_cand:
+            if len(i.last_transfer) > 0:
+                temp = len(i.last_transfer)
+                i.votes_per_count.append(temp)
                 i.transferred_votes.append(i.last_transfer.copy)
+                i.last_transfer = []
+                log_str += "{} has {} votes copied to transferred_votes attribute.".format(i.name, temp)
             else:
-                if i not in last_trans:
-                    i.votes_per_count.append(0)
-        for i in last_trans:
-            i.votes_per_count.append(i.surplus * -1)
-        self.increase_count()
+                i.votes_per_count.append(0)
+                i.transferred_votes.append([])
+                log_str += "{} had 0 votes transferred.".format(i.name)
+        # for i in last_trans:
+        #     i.votes_per_count.append(i.surplus * -1)
+        # self.increase_count()
 
     def proportion_post_transfer(self, surplus, votes, votes_per_cand):
         """
@@ -619,7 +629,7 @@ class Constituency:
                     self.proportion_transfer(cand_with_transfer.surplus, self.transfer_votes, vote_per_cand)
                     if sum(vote_per_cand) < cand_with_transfer.surplus:
                         self.non_transferable.append(cand_with_transfer.surplus - sum(vote_per_cand))
-                        cand_with_transfer.votes_per_count.append(cand_with_transfer.surplus)
+                        cand_with_transfer.votes_per_count.append(cand_with_transfer.surplus * -1)
                         cand_with_transfer.surplus = 0
                     self.transfer_votes = []
                 else:
@@ -629,7 +639,7 @@ class Constituency:
                     vote_per_cand = self.proportion_amount(trans_per_cand, cand_with_transfer.surplus)
                     self.proportion_transfer(cand_with_transfer.surplus, self.transfer_votes, vote_per_cand)
                     cand_with_transfer.surplus_transferred = True
-                    cand_with_transfer.votes_per_count.append(cand_with_transfer.surplus)
+                    cand_with_transfer.votes_per_count.append(cand_with_transfer.surplus * -1)
                     cand_with_transfer.surplus = 0
                     self.transfer_votes = []
         else:
@@ -648,7 +658,7 @@ class Constituency:
             print("Number first Votes: {}".format(len(i.first_votes)))
             print("Number last transferred votes: {}".format(len(i.last_transfer)))
             print("The total number of votes is: {}".format(i.num_votes))
-            print("The total transferred votes is: {}".format(len(i.transferred_votes)))
+            print("The total transferred votes is: {}".format(sum(i.transferred_votes)))
             print("Number of counts: {}, Sum of votes per count {}".format(len(i.votes_per_count),
                                                                            sum(i.votes_per_count)))
             print("Are they elected: {}".format(i.elected))
@@ -664,6 +674,7 @@ class Constituency:
         self.set_quota()
         self.first_count()
         self.increase_count()
+
         self.print_first()
         self.check_elected()
         self.set_surplus()
@@ -681,8 +692,10 @@ class Constituency:
         # self.proportion_transfer(self.transfer_votes, vote_per_cand)
         # high.surplus_transferred = True
         self.next_transfer()
+        self.candidate_votes_update()
         self.check_elected()
+        self.set_surplus()
         self.next_transfer()
-        self.print_cand_last_trans()
+        # self.print_cand_last_trans()
         # cand = self.candidate_highest_surplus()
-        # self.print_candidate_details()
+        self.print_candidate_details()
