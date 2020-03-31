@@ -2,6 +2,7 @@ from Candidate import *
 import datetime as time
 from random import randrange
 from math import modf
+import copy
 from operator import attrgetter
 
 
@@ -377,14 +378,14 @@ class Constituency:
         require based on the value in votes_per_cand. Append the number of votes transferred to the votes_per_count.
         Increase the count by 1 by calling increase_count() method. Update the amount of non_transferable votes.
         :param surplus: number of votes in the surplus
-        :param votes: list of the votes to be transfered
+        :param votes: list of the votes to be transferred
         :param votes_per_cand: list of the number of votes each candidate has to get
         :return: None
         """
         log_str = "Constituency.proportion_transfer method\n"
         for index, i in enumerate(votes_per_cand):
             for j in range(int(i)):
-                self.candidates[index].last_transfer.append(reversed(votes[index]))
+                self.candidates[index].last_transfer.append(votes[index][::-1])
             log_str += "{} gets {} transferred votes.\n".format(self.candidates[index].name, len(self.candidates[index].last_transfer))
 
         self.non_transferable.append(0)
@@ -402,7 +403,7 @@ class Constituency:
             if len(i.last_transfer) > 0:
                 temp = len(i.last_transfer)
                 i.votes_per_count.append(temp)
-                i.transferred_votes.append(i.last_transfer.copy)
+                i.transferred_votes.append(copy.deepcopy(i.last_transfer))
                 i.last_transfer = []
                 log_str += "{} has {} votes copied to transferred_votes attribute.".format(i.name, temp)
             else:
@@ -643,6 +644,7 @@ class Constituency:
                     cand_with_transfer.surplus = 0
                     self.transfer_votes = []
         else:
+            print("Should Exclude")
             exclude = self.eliminate_cand()
             for i in exclude:
                 print("Exclude = {}".format(i.name))
@@ -658,7 +660,7 @@ class Constituency:
             print("Number first Votes: {}".format(len(i.first_votes)))
             print("Number last transferred votes: {}".format(len(i.last_transfer)))
             print("The total number of votes is: {}".format(i.num_votes))
-            print("The total transferred votes is: {}".format(sum(i.transferred_votes)))
+            # print("The total transferred votes is: {}".format(sum(i.transferred_votes)))
             print("Number of counts: {}, Sum of votes per count {}".format(len(i.votes_per_count),
                                                                            sum(i.votes_per_count)))
             print("Are they elected: {}".format(i.elected))
@@ -675,27 +677,14 @@ class Constituency:
         self.first_count()
         self.increase_count()
 
-        self.print_first()
+        # self.print_first()
         self.check_elected()
         self.set_surplus()
-        print("Line 633 do we have a surplus {}".format(self.check_surplus()))
-        # self.print_available_cand()
-        # low = self.lowest_votes()
-        # self.print_surplus()
-        # high = self.candidate_highest_surplus()
-        # self.transfers_per_candidate(high.first_votes)
-        # trans_per_cand = self.transfer_candidate(self.transfer_votes, high.surplus)
-        #
-        # vote_per_cand = self.proportion_amount(trans_per_cand, high.surplus)
-        #
-        #
-        # self.proportion_transfer(self.transfer_votes, vote_per_cand)
-        # high.surplus_transferred = True
+
         self.next_transfer()
         self.candidate_votes_update()
         self.check_elected()
         self.set_surplus()
         self.next_transfer()
-        # self.print_cand_last_trans()
-        # cand = self.candidate_highest_surplus()
-        self.print_candidate_details()
+
+       # self.print_candidate_details()

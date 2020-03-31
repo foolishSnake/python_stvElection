@@ -25,10 +25,7 @@ class Candidate:
         Counts the number of votes per count and returns it value
         :return:
         """
-        votes = 0
-        for i in self.votes_per_count:
-            votes += i
-        return votes
+        return sum(self.votes_per_count)
 
     @property
     def num_last_transfer(self):
