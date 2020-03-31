@@ -23,6 +23,7 @@ class Constituency:
         self.elected_cand = []
         self.eliminated_cand = []
         self.available_cand = []
+        self.candidates_with_surplus = []
         self.count = 0
         self.transfer_round = 0
         self.non_transferable = []
@@ -497,10 +498,14 @@ class Constituency:
         """
         surplus = False
         log_str = "Constituency.set_surplus. \n"
+        self.total_surplus = 0
+        self.candidates_with_surplus = []
         for i in self.elected_cand:
             if i.num_votes > self.quota:
                 i.set_surplus(self.quota)
                 surplus = True
+                self.total_surplus += i.surplus
+                self.candidates_with_surplus.append(i)
                 log_str += "Candidate {} has a surplus of {} votes.\n".format(i.name, i.surplus)
         if surplus:
             self.write_log(log_str)
@@ -693,6 +698,7 @@ class Constituency:
 
         self.next_transfer()
         self.candidate_votes_update()
+        print("Current surplus {}".format(self.total_surplus))
         self.check_elected()
         self.set_surplus()
         self.print_surplus()
