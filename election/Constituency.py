@@ -591,20 +591,29 @@ class Constituency:
         eliminate_list = []
         exclusion = []
         possible_transfer = self.total_surplus
-        for i in range(len(self.available_cand)):
+        log_str = "Eliminate Candidates\n"
+
+        # Creates a list of all candidates sorted.
+        for i in self.available_cand:
             lowest_cand = self.lowest_votes(sorted_cand)
             eliminate_list.append(lowest_cand)
             sorted_cand.remove(lowest_cand)
 
+        # Test if the next lowest candidate should be excluded.
         for index, i in enumerate(eliminate_list):
             if index == 0:
                 exclusion.append(i)
                 possible_transfer += i.num_votes
+                log_str += "{} has been eliminated\n".format(i.name)
             if 0 < index < len(eliminate_list) - 1:
-                if possible_transfer < i.num_votes and \
-                        (i.return_expenses or possible_transfer + i.num_votes > self.expenses_quota):
+                if (possible_transfer + i.num_votes < eliminate_list[index + 1].num_votes) or (self.expenses_quota > possible_transfer + i.num_votes):
                     exclusion.append(i)
                     possible_transfer += i.num_votes
+                    log_str += "{} has been eliminated\n".format(i.name)
+                else:
+                    break
+
+        self.write_log(log_str)
         return exclusion
 
     # Don't think I need this any more'
@@ -676,6 +685,7 @@ class Constituency:
         self.set_quota()
         self.first_count()
         self.increase_count()
+        self.print_surplus()
 
         # self.print_first()
         self.check_elected()
@@ -685,6 +695,7 @@ class Constituency:
         self.candidate_votes_update()
         self.check_elected()
         self.set_surplus()
+        self.print_surplus()
         self.next_transfer()
 
        # self.print_candidate_details()
