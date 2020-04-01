@@ -336,7 +336,7 @@ class Constituency:
                 temp_non_transferable.append(i)
             else:
                 self.transfer_votes[index].append(i)
-        self.write_log("Constituency.transfers_per_candidate method finshed")
+        self.write_log("Constituency.transfers_per_candidate method finished")
         return len(temp_non_transferable)
 
     def sum_transferable(self, votes):
@@ -386,9 +386,11 @@ class Constituency:
         log_str = "Constituency.proportion_transfer method\n"
         for index, i in enumerate(votes_per_cand):
             for j in range(int(i)):
-                self.candidates[index].last_transfer.append(votes[index][::-1])
-            log_str += "{} gets {} transferred votes.\n".format(self.candidates[index].name, len(self.candidates[index].last_transfer))
+                test = (self.candidates[index].last_transfer)
+                self.candidates[index].last_transfer.append(votes[index][len(votes[index])-(j + 1)])
 
+            log_str += "{} gets {} transferred votes.\n".format(self.candidates[index].name, len(self.candidates[index].last_transfer))
+        print("Last Transfer {} {}".format(self.candidates[12].name, self.candidates[12].last_transfer))
         self.non_transferable.append(0)
         self.write_log(log_str)
         return None
@@ -404,7 +406,13 @@ class Constituency:
             if len(i.last_transfer) > 0:
                 temp = len(i.last_transfer)
                 i.votes_per_count.append(temp)
-                i.transferred_votes.append(copy.deepcopy(i.last_transfer))
+                if i.cand_index == 12:
+                    print("{} {}".format(i.name, i.transferred_votes))
+                votes = [i for i in i.last_transfer]
+                i.transferred_votes.append(votes)
+                if i.cand_index == 12:
+                    print("{} {} ".format(i.name, i.transferred_votes))
+                    print(i.last_transfer)
                 i.last_transfer = []
                 log_str += "{} has {} votes copied to transferred_votes attribute.".format(i.name, temp)
             else:
@@ -669,7 +677,6 @@ class Constituency:
                         cand_with_transfer.surplus = 0
                     self.transfer_votes = []
                 else:
-                    print("It ran")
                     self.transfers_per_candidate(cand_with_transfer.first_votes)
                     trans_per_cand = self.transfer_candidate(self.transfer_votes, cand_with_transfer.surplus)
                     vote_per_cand = self.proportion_amount(trans_per_cand, cand_with_transfer.surplus)
@@ -679,11 +686,11 @@ class Constituency:
                     cand_with_transfer.surplus = 0
                     self.transfer_votes = []
         else:
-            print("Should Exclude")
             exclude = self.eliminate_cand()
             for i in exclude:
                 # print("Exclude = {}".format(i.name, len(self.vote_consolidation(i))))
                 print("Exclude = {}, Transferred_votes\n{} ".format(i.name, i.transferred_votes))
+
     def print_candidate_details(self):
         """
         Test method used to print the details of candidate attributes
