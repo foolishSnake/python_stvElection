@@ -630,6 +630,18 @@ class Constituency:
         self.write_log(log_str)
         return exclusion
 
+    def vote_consolidation(self, cand):
+
+        consolidated_votes = []
+        if len(cand.transferred_votes > 0):
+            for i in cand.transferred_votes:
+                for vote in i:
+                    consolidated_votes.append(vote)
+        for f_vote in cand.first_votes:
+            consolidated_votes.append(f_vote)
+
+        return consolidated_votes
+
     # Don't think I need this any more'
     # def eliminate_cand_over_expenses(self):
     #     eliminate_list = []
@@ -670,8 +682,8 @@ class Constituency:
             print("Should Exclude")
             exclude = self.eliminate_cand()
             for i in exclude:
-                print("Exclude = {}".format(i.name))
-
+                # print("Exclude = {}".format(i.name, len(self.vote_consolidation(i))))
+                print("Exclude = {}, Transferred_votes\n{} ".format(i.name, i.transferred_votes))
     def print_candidate_details(self):
         """
         Test method used to print the details of candidate attributes
