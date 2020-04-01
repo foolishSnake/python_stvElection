@@ -592,6 +592,11 @@ class Constituency:
             return cand
 
     def eliminate_cand(self):
+        """
+        Test for the next candidate to be eliminated.
+        The candidate with the lowest votes is eliminated, we then test if any others can be eliminated.
+        return: exclusion: A list of all excluded candidates
+        """
         sorted_cand = sorted(self.available_cand, key=lambda candidate: candidate.num_votes)
         eliminate_list = []
         exclusion = []
@@ -611,12 +616,16 @@ class Constituency:
                 possible_transfer += i.num_votes
                 log_str += "{} has been eliminated\n".format(i.name)
             if 0 < index < len(eliminate_list) - 1:
-                if (possible_transfer + i.num_votes < eliminate_list[index + 1].num_votes) or (self.expenses_quota > possible_transfer + i.num_votes):
+                if (possible_transfer + i.num_votes > eliminate_list[index + 1].num_votes) or (possible_transfer + i.num_votes > self.expenses_quota) :
+                    break
+                else:
                     exclusion.append(i)
                     possible_transfer += i.num_votes
                     log_str += "{} has been eliminated\n".format(i.name)
-                else:
-                    break
+
+        for i in exclusion:
+            self.available_cand_remove(i)
+            self.eliminated_cand.append(i)
 
         self.write_log(log_str)
         return exclusion
