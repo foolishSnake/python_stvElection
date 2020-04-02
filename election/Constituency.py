@@ -109,15 +109,6 @@ class Constituency:
         self.write_log("Constituency.increase_count method. Increased count number to {}".format(self.count))
         return None
 
-    # Remove after testing
-    def print_first(self):
-        """
-        test method
-        :return:
-        """
-        print(self.name)
-        for i in self.candidates:
-            print(i.name + " " + str(len(i.first_votes)))
 
     def check_elected(self):
         """
@@ -401,26 +392,27 @@ class Constituency:
         :return:
         """
         log_str = "Candidate_votes_update method\n"
-        for i in self.available_cand:
-            if len(i.last_transfer) > 0:
-                temp = len(i.last_transfer)
-                i.votes_per_count.append(temp)
-                if i.cand_index == 12:
-                    print("{} {}".format(i.name, i.transferred_votes))
-                votes = [i for i in i.last_transfer]
-                i.transferred_votes.append(votes)
-                if i.cand_index == 12:
-                    print("{} {} ".format(i.name, i.transferred_votes))
-                    print(i.last_transfer)
-                i.last_transfer = []
-                log_str += "{} has {} votes copied to transferred_votes attribute.".format(i.name, temp)
+        for i in self.candidates:
+            if i in self.available_cand:
+                if len(i.last_transfer) > 0:
+                    temp = len(i.last_transfer)
+                    i.votes_per_count.append(temp)
+                    i.transferred_votes.append(copy.deepcopy(i.last_transfer))
+                    i.last_transfer = []
+                    log_str += "{} has {} votes copied to transferred_votes attribute.\n".format(i.name, temp)
+                else:
+                    i.votes_per_count.append(0)
+                    i.transferred_votes.append([])
+                    log_str += "{} had 0 votes transferred.\n".format(i.name)
             else:
-                i.votes_per_count.append(0)
-                i.transferred_votes.append([])
-                log_str += "{} had 0 votes transferred.".format(i.name)
-        # for i in last_trans:
-        #     i.votes_per_count.append(i.surplus * -1)
-        # self.increase_count()
+                temp = len(i.votes_per_count)
+                temp2 = self.count
+                if (len(i.votes_per_count) < (self.count)):
+                    i.votes_per_count.append(0)
+                    i.transferred_votes.append([])
+                    log_str += "{} had 0 votes transferred.\n".format(i.name)
+
+        self.write_log(log_str)
 
     def proportion_post_transfer(self, surplus, votes, votes_per_cand):
         """
@@ -721,7 +713,7 @@ class Constituency:
             print("-----------------------------------------------------------------------------")
             print("Name: {}".format(i.name))
             print("Number first Votes: {}".format(len(i.first_votes)))
-            print("Number last transferred votes: {}".format(len(i.last_transfer)))
+            print("Number last transferred votes: {}".format(i.votes_per_count[-1]))
             print("The total number of votes is: {}".format(i.num_votes))
             # print("The total transferred votes is: {}".format(sum(i.transferred_votes)))
             print("Number of counts: {}, Sum of votes per count {}".format(len(i.votes_per_count),
@@ -737,19 +729,23 @@ class Constituency:
     def count_ballot(self):
         self.set_available_cand()
         self.set_quota()
-        self.first_count()
         self.increase_count()
+        print("Count Number = {}".format(self.count))
+        self.first_count()
+
 
 
         # self.print_first()
         self.check_elected()
         self.set_surplus()
-
+        self.increase_count()
+        print("Count Number = {}".format(self.count))
         self.next_transfer()
         self.candidate_votes_update()
         self.check_elected()
         self.set_surplus()
         self.increase_count()
+        print("Count Number = {}".format(self.count))
         self.next_transfer()
         self.candidate_votes_update()
         self.check_elected()
