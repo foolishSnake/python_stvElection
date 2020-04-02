@@ -390,7 +390,6 @@ class Constituency:
                 self.candidates[index].last_transfer.append(votes[index][len(votes[index])-(j + 1)])
 
             log_str += "{} gets {} transferred votes.\n".format(self.candidates[index].name, len(self.candidates[index].last_transfer))
-        print("Last Transfer {} {}".format(self.candidates[12].name, self.candidates[12].last_transfer))
         self.non_transferable.append(0)
         self.write_log(log_str)
         return None
@@ -560,7 +559,7 @@ class Constituency:
         """
         Tests if a surplus can be distributed As per ELECTORAL ACT 1992
         (As amended by the Electoral (Amendment) Act 2001) Section 121 - 8
-        :param None:
+        :param: none:
         :return: Boolean False if rule is met andTrue if not met.
         """
         lowest_cand = self.lowest_votes(self.available_cand)
@@ -603,6 +602,7 @@ class Constituency:
         """
         Test for the next candidate to be eliminated.
         The candidate with the lowest votes is eliminated, we then test if any others can be eliminated.
+        param: none:
         return: exclusion: A list of all excluded candidates
         """
         sorted_cand = sorted(self.available_cand, key=lambda candidate: candidate.num_votes)
@@ -634,37 +634,59 @@ class Constituency:
         for i in exclusion:
             self.available_cand_remove(i)
             self.eliminated_cand.append(i)
+            i.excluded = True
 
         self.write_log(log_str)
         return exclusion
 
     def vote_consolidation(self, cand):
-
+        """
+        Consolidates all the votes for an elemanted candidate into a single list.
+        return: consolidated_votes:
+        """
         consolidated_votes = []
-        if len(cand.transferred_votes > 0):
+        log_str = "vote_consolidation\n"
+        if len(cand.transferred_votes) > 0:
             for i in cand.transferred_votes:
                 for vote in i:
                     consolidated_votes.append(vote)
         for f_vote in cand.first_votes:
             consolidated_votes.append(f_vote)
 
+        log_str += "{} has a total of {} votes consolidated\n".format(cand.name, len(consolidated_votes))
+        self.write_log(log_str)
         return consolidated_votes
 
-    # Don't think I need this any more'
-    # def eliminate_cand_over_expenses(self):
-    #     eliminate_list = []
-    #     for i in self.available_cand:
-    #         lowest_cand = self.lowest_votes()
-    #         next_lowest = self.next_lowest()
-    #         if lowest_cand is not None:
-    #             if self.transfer_round + lowest_cand.num_votes + next_lowest:
-    #                 print()
+    def excluded_vote_transfer(self, candidates):
+        """
+        para
+        return: none:
+        """
+        non_transferable = []
+        log_str = "excluded_vote_transfer\n"
+
+        for i in candidates:
+            cand_non = 0
+            log_str += "Transfering votes from {}\n".format(i.name)
+            votes = self.vote_consolidation(i)
+            for j in votes:
+                index = self.next_pref(j)
+                if not index:
+                    non_transferable.append(j)
+                    cand_non += 1
+                else:
+                    self.candidates[index].last_transfer.append(j)
+            log_str += "{} transferred {} votes and had {} non-transferable votes\n".format(i.name, (len(votes) - cand_non), cand_non)
+            i.votes_per_count.append(len(votes) * -1)
+
+        self.non_transferable = non_transferable
+        self.write_log(log_str)
+
 
     def next_transfer(self):
         self.num_transferrable()
         if self.check_surplus():
             cand_with_transfer = self.candidate_highest_surplus()
-            print("Can we distribute surplus {}".format(self.test_distribute_surplus()))
             if self.test_distribute_surplus():
                 if cand_with_transfer.surplus_transferred:
                     self.transfers_per_candidate(cand_with_transfer.last_transfer)
@@ -687,9 +709,8 @@ class Constituency:
                     self.transfer_votes = []
         else:
             exclude = self.eliminate_cand()
-            for i in exclude:
-                # print("Exclude = {}".format(i.name, len(self.vote_consolidation(i))))
-                print("Exclude = {}, Transferred_votes\n{} ".format(i.name, i.transferred_votes))
+            self.excluded_vote_transfer(exclude)
+
 
     def print_candidate_details(self):
         """
@@ -718,7 +739,7 @@ class Constituency:
         self.set_quota()
         self.first_count()
         self.increase_count()
-        self.print_surplus()
+
 
         # self.print_first()
         self.check_elected()
@@ -726,10 +747,13 @@ class Constituency:
 
         self.next_transfer()
         self.candidate_votes_update()
-        print("Current surplus {}".format(self.total_surplus))
         self.check_elected()
         self.set_surplus()
-        self.print_surplus()
+        self.increase_count()
         self.next_transfer()
+        self.candidate_votes_update()
+        self.check_elected()
+        self.set_surplus()
+        self.print_candidate_details()
 
        # self.print_candidate_details()
