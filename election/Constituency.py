@@ -788,6 +788,7 @@ class Constituency:
                     log_str += "{} are excluded.\n".format(i.name)
 
             self.write_log(log_str)
+            return True
 
         return False
 

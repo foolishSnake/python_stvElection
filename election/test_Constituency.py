@@ -141,3 +141,85 @@ def test_lowest_votes():
     co.available_cand.remove(co.candidates[2])
     co.candidates.remove(co.candidates[2])
     assert co.lowest_votes(co.candidates) == co.candidates[0] or co.candidates[1]
+
+def test_fill_remaining_seats():
+    co = Constituency()
+    co.num_seats = 4
+    cand_1 = Candidate("Cand_1", "Test_1", "Test_party", 0)
+    cand_2 = Candidate("Cand_2", "Test_2", "Test_party", 1)
+    cand_3 = Candidate("Cand_3", "Test_3", "Test_party", 2)
+    cand_4 = Candidate("Cand_4", "Test_4", "Test_party", 3)
+    cand_5 = Candidate("Cand_5", "Test_5", "Test_party", 4)
+    co.candidates.append(cand_1)
+    co.candidates.append(cand_2)
+    co.candidates.append(cand_3)
+    co.candidates.append(cand_4)
+    co.candidates.append(cand_5)
+    co.available_cand.append(co.candidates[0])
+    co.available_cand.append(co.candidates[1])
+    co.elected_cand.append(co.candidates[2])
+    co.elected_cand.append(co.candidates[3])
+    co.candidates[0].first_votes = [[1, 3, 2, 0], [1, 3, 2, 0], [1, 3, 2, 0], [1, 3, 2, 0]]
+    co.candidates[1].first_votes = [[0, 1, 2, 3], [0, 1, 2, 3], [0, 1, 2, 3]]
+    co.candidates[2].first_votes = [[2, 0, 1, 3], [2, 0, 1, 3], [2, 0, 1, 3], [2, 0, 1, 3]]
+    co.candidates[3].first_votes = [[2, 0, 3, 1], [2, 0, 3, 1], [2, 0, 3, 1], [2, 0, 3, 1]]
+    co.candidates[4].first_votes = [[2, 0, 3, 1], [2, 0, 3, 1], [2, 0, 3, 1], [2, 0, 3, 1], [2, 0, 3, 1]]
+
+    # Test id the first if statement is meet
+    assert co.fill_remaining_seats() == True
+
+    co2 = Constituency()
+    co2.total_surplus = 0
+    co2.num_seats = 3
+    co2.candidates.append(cand_1)
+    co2.candidates.append(cand_2)
+    co2.candidates.append(cand_3)
+    co2.candidates.append(cand_4)
+    co2.candidates.append(cand_5)
+    co2.available_cand.append(co.candidates[0])
+    co2.available_cand.append(co.candidates[1])
+    co2.elected_cand.append(co.candidates[2])
+    co2.elected_cand.append(co.candidates[3])
+    co2.candidates[0].first_votes = [[1, 3, 2, 0]]
+    co2.candidates[1].first_votes = [[0, 1, 2, 3], [0, 1, 2, 3], [0, 1, 2, 3]]
+    co2.candidates[2].first_votes = [[2, 0, 1, 3], [2, 0, 1, 3], [2, 0, 1, 3], [2, 0, 1, 3]]
+    co2.candidates[3].first_votes = [[2, 0, 3, 1], [2, 0, 3, 1], [2, 0, 3, 1], [2, 0, 3, 1]]
+    co2.candidates[4].first_votes = [[2, 0, 3, 1], [2, 0, 3, 1], [2, 0, 3, 1], [2, 0, 3, 1], [2, 0, 3, 1]]
+    for i in co2.candidates:
+        i.votes_per_count.append(len(i.first_votes))
+
+    # Test if the first elif statement is meet
+    assert co2.fill_remaining_seats() == True
+
+    co3 = Constituency()
+    co3.total_surplus = 0
+    co3.num_seats = 3
+    co3.candidates.append(cand_1)
+    co3.candidates.append(cand_2)
+    co3.candidates.append(cand_3)
+    co3.candidates.append(cand_4)
+    co3.candidates.append(cand_5)
+    co3.available_cand.append(co.candidates[0])
+    co3.available_cand.append(co.candidates[1])
+    co3.available_cand.append(co.candidates[4])
+    co3.elected_cand.append(co.candidates[2])
+    co3.elected_cand.append(co.candidates[3])
+    co3.candidates[0].first_votes = [[1, 3, 2, 0]]
+    co3.candidates[1].first_votes = [[0, 1, 2, 3], [0, 1, 2, 3]]
+    co3.candidates[2].first_votes = [[2, 0, 1, 3], [2, 0, 1, 3], [2, 0, 1, 3], [2, 0, 1, 3]]
+    co3.candidates[3].first_votes = [[2, 0, 3, 1], [2, 0, 3, 1], [2, 0, 3, 1], [2, 0, 3, 1]]
+    co3.candidates[4].first_votes = [[2, 0, 3, 1], [2, 0, 3, 1], [2, 0, 3, 1], [2, 0, 3, 1], [2, 0, 3, 1]]
+
+    for i in co3.candidates:
+        i.votes_per_count.append(len(i.first_votes))
+
+    # Tests if the second 2 elif statement is meet
+    assert co3.fill_remaining_seats() == True
+
+
+    for i in co.candidates:
+        i.votes_per_count.append(len(i.first_votes))
+    co.candidates[1].votes_per_count.append(2)
+    co.candidates[2].votes_per_count.append(3)
+    co.candidates[3].votes_per_count.append(3)
+    co.candidates[4].votes_per_count.append(1)
