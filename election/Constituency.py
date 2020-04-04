@@ -66,7 +66,7 @@ class Constituency:
     def set_quota(self):
         """
         Calculates the quota and expenses_quota
-        :return: String
+        :return: None
         """
         if len(self.ballot) == 0:
             return None
@@ -726,12 +726,118 @@ class Constituency:
             print("Amount of available transfers: {}".format(len(self.transfer_votes)))
             print("-----------------------------------------------------------------------------")
 
+    def fill_remaining_seats(self):
+        """
+        Checks if the count can end by filling any remaining seat without doing another count.
+        Test if the lowest continuing candidate votes plus surplus not transferred exceed expenses quota. If True
+        method ends.
+        Test if the number of available seats = number of remaining candidates if True remaining candidates are elected.
+        Test if number of continuing candidates is == seats unfilled + 1. It True will exclude the lowest candidate if
+        their votes + any Surplus not transferred is less than the votes of the next highest candidate.
+        Test if there is only one seat to fill if True. Will test if the votes credited to the highest continuing
+        candidate is greater than the sum of votes of the other continuing candidates plus any surplus not transferred.
+        If True highest candidate is elected.
+        :param: None
+        :return: Boolean
+        """
+        num_continuing = len(self.available_cand)
+        available_seats = self.num_seats - len(self.elected_cand)
+        lowest_cand = self.lowest_votes(self.available_cand)
+        log_str = "fill_remaining_seats() Method\n"
+
+
+
+        if num_continuing == available_seats:
+            log_str += "Number of continuing candidates = number of seats to fill.\n"
+            self.elected_remaining_cand()
+            self.write_log(log_str)
+            return True
+
+        elif num_continuing == available_seats + 1:
+            log_str += "Number of continuing candidates = number of seats to fill plus 1.\n"
+            second_lowest = self.second_lowest(lowest_cand)
+            if lowest_cand.num_votes + self.total_surplus < second_lowest.num_votes:
+                log_str += "The lowest continuing candidate votes plus available surplus is less than second lowest candidates votes.\n{} is excluded".format(lowest_cand.name)
+                lowest_cand.excluded = True
+                self.eliminated_cand.append(lowest_cand)
+                self.elected_remaining_cand()
+                self.write_log(log_str)
+
+                return True
+
+        elif available_seats == 1:
+            log_str += "Available seats = 1\n"
+            highest_candidate = self.highest_continuing(self.available_cand)
+            number_votes_other = 0
+            for i in self.available_cand:
+                if highest_candidate is i:
+                    pass
+                else:
+                    number_votes_other += i.num_votes
+
+            if number_votes_other + self.total_surplus < highest_candidate.num_votes:
+                log_str += "Highest continuing candidates votes are greater then the sun of all other continuing candidates plus any surplus not transferred.\n {} is elected.\n".format(highest_candidate.name)
+                highest_candidate.elected = True
+                self.elected_cand.append(highest_candidate)
+                self.available_cand_remove(highest_candidate)
+                log_str += "The following candidates are excluded.\n"
+                for i in self.available_cand[::-1]:
+                    i.excluded = True
+                    self.eliminated_cand.append(i)
+                    self.available_cand_remove(i)
+                    log_str += "{} are excluded.\n".format(i.name)
+
+            self.write_log(log_str)
+
+        return False
+
+    def elected_remaining_cand(self):
+        """
+        Elect all remaining continuing candidates
+        :param: None
+        :return: None
+        """
+        log_srt = "elected_remaining_cand() Method\nThe following candidates are elected.\n"
+        for i in self.available_cand:
+            self.elected_cand.append(i)
+            i.elected = True
+            log_srt += "{} are elected.\n".format(i.name)
+        self.available_cand = []
+        self.write_log(log_srt)
+
+    def continuing_less_expenses(self):
+        """
+        Creates a list of all continuing candidates who have not meet the expense quota.
+        Returns a list of these candidates.
+        :param: None
+        :return: List: non_expenses
+        """
+        log_str = "continuing_less_expenses() Method.\n"
+        non_expenses = []
+        for i in self.available_cand:
+            if not i.return_expenses:
+                non_expenses.append(i)
+                log_str += "{} is below expenses quota.\n".format(i.name)
+
+        self.write_log(log_str)
+        return non_expenses
+
+
+
     def count_ballot(self):
         self.set_available_cand()
         self.set_quota()
         self.increase_count()
-        print("Count Number = {}".format(self.count))
         self.first_count()
+        self.check_elected()
+        self.set_surplus()
+        
+        while len(self.elected_cand) < self.num_seats:
+            self.increase_count()
+            self.next_transfer()
+            self.candidate_votes_update()
+            self.check_elected()
+            self.set_surplus()
 
 
 
