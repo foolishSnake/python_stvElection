@@ -240,9 +240,50 @@ def test_fill_remaining_seats():
 
     assert co4.fill_remaining_seats() == False
 
-    for i in co.candidates:
-        i.votes_per_count.append(len(i.first_votes))
-    co.candidates[1].votes_per_count.append(2)
-    co.candidates[2].votes_per_count.append(3)
-    co.candidates[3].votes_per_count.append(3)
-    co.candidates[4].votes_per_count.append(1)
+
+def test_final_surplus_transfer():
+    co = Constituency()
+    co.num_seats = 4
+    co.total_surplus = 0
+    cand_1 = Candidate("Cand_1", "Test_1", "Test_party", 0)
+    cand_2 = Candidate("Cand_2", "Test_2", "Test_party", 1)
+    cand_3 = Candidate("Cand_3", "Test_3", "Test_party", 2)
+    cand_4 = Candidate("Cand_4", "Test_4", "Test_party", 3)
+    cand_5 = Candidate("Cand_5", "Test_5", "Test_party", 4)
+    co.candidates.append(cand_1)
+    co.candidates.append(cand_2)
+    co.candidates.append(cand_3)
+    co.candidates.append(cand_4)
+    co.candidates.append(cand_5)
+    co.available_cand.append(co.candidates[0])
+    co.available_cand.append(co.candidates[1])
+    co.elected_cand.append(co.candidates[2])
+    co.elected_cand.append(co.candidates[3])
+    co.candidates[0].first_votes = [[1, 3, 2, 0], [1, 3, 2, 0], [1, 3, 2, 0], [1, 3, 2, 0]]
+    co.candidates[1].first_votes = [[0, 1, 2, 3]]
+    co.candidates[2].first_votes = [[2, 0, 1, 3], [2, 0, 1, 3], [2, 0, 1, 3], [2, 0, 1, 3]]
+    co.candidates[3].first_votes = [[2, 0, 3, 1], [2, 0, 3, 1], [2, 0, 3, 1], [2, 0, 3, 1]]
+    co.candidates[4].first_votes = [[2, 0, 3, 1], [2, 0, 3, 1], [2, 0, 3, 1], [2, 0, 3, 1], [2, 0, 3, 1]]
+
+    # Tests if we get a False if There is no surplus votes
+    assert co.final_surplus_transfer([cand_1]) == False
+
+    co.total_surplus = 2
+    cand_1.return_expenses = True
+    cand_2.return_expenses = True
+
+    # Test if we have a surplus and that the candidates in the list are already getting there expenses back
+    assert co.final_surplus_transfer([cand_1, cand_2]) == False
+
+    cand_2.return_expenses = False
+    co.expenses_quota = 10
+    co.total_surplus = 1
+    # Test if we have a surplus + a candidate who has not got there expenses back
+    # + can't get enough votes to get it back
+    assert co.final_surplus_transfer([cand_1, cand_2]) == False
+
+    co.expenses_quota = 3
+    co.total_surplus = 10
+
+    # Test we have a surplus, a candidate who does not get expenses back and enough votes that they may get them.
+    assert co.final_surplus_transfer([cand_1, cand_2]) == True
