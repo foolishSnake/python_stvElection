@@ -216,6 +216,29 @@ def test_fill_remaining_seats():
     # Tests if the second 2 elif statement is meet
     assert co3.fill_remaining_seats() == True
 
+    co4 = Constituency()
+    co4.total_surplus = 0
+    co4.num_seats = 3
+    co4.candidates.append(cand_1)
+    co4.candidates.append(cand_2)
+    co4.candidates.append(cand_3)
+    co4.candidates.append(cand_4)
+    co4.candidates.append(cand_5)
+    co4.available_cand.append(co.candidates[0])
+    co4.available_cand.append(co.candidates[1])
+    co4.available_cand.append(co.candidates[2])
+    co4.available_cand.append(co.candidates[3])
+    co4.elected_cand.append(co.candidates[4])
+    co4.candidates[0].first_votes = [[1, 3, 2, 0]]
+    co4.candidates[1].first_votes = [[0, 1, 2, 3], [0, 1, 2, 3]]
+    co4.candidates[2].first_votes = [[2, 0, 1, 3], [2, 0, 1, 3], [2, 0, 1, 3], [2, 0, 1, 3]]
+    co4.candidates[3].first_votes = [[2, 0, 3, 1], [2, 0, 3, 1], [2, 0, 3, 1], [2, 0, 3, 1]]
+    co4.candidates[4].first_votes = [[2, 0, 3, 1], [2, 0, 3, 1], [2, 0, 3, 1], [2, 0, 3, 1], [2, 0, 3, 1]]
+
+    for i in co3.candidates:
+        i.votes_per_count.append(len(i.first_votes))
+
+    assert co4.fill_remaining_seats() == False
 
     for i in co.candidates:
         i.votes_per_count.append(len(i.first_votes))

@@ -27,6 +27,7 @@ class Constituency:
         self.count = 0
         self.transfer_round = 0
         self.non_transferable = []
+        self.distribute_final_surplus = False
 
         # writelog = FileAccess.write_log()
 
@@ -822,6 +823,58 @@ class Constituency:
 
         self.write_log(log_str)
         return non_expenses
+
+    def final_surplus_transfer(self, candidates):
+        """
+        Take a list of candidates eliminated by the fill_remaining_seats() method.
+        Test if any of the candidates might have a chance of getting expenses back.
+        If they do returns True and sets class attribute self.distribute_final_surplus to True.
+        If not returns false.
+        :param: candidates
+        :return: Boolen
+        """
+        expenses_trans = False
+        log_str = "final_surplus_transfer() Method.\n"
+        if self.total_surplus == 0:
+            self.distribute_final_surplus = False
+            log_str += "These is no surplus to transfer (No final transfer needed).\n"
+            self.write_log(log_str)
+            return False
+
+        for i in candidates:
+            if not i.return_expenses:
+                expenses_trans = True
+
+        if not expenses_trans:
+            self.distribute_final_surplus = False
+            log_str += "All Candidates already have get their expenses back (No final transfer needed).\n"
+            self.write_log(log_str)
+            return False
+        log_str += "There are candidates who have not reached the expenses quota\n"
+        possible_transferable = 0
+        for i in candidates:
+            if not i.return_expenses:
+                possible_transferable += i.num_votes
+                log_str += "{} has not reached expenses quota.\n".format(i.name)
+        if possible_transferable + self.total_surplus > self.expenses_quota:
+            log_str += "It might be possible for a candidate to get their expenses back (Do a final transfer)\n"
+            self.write_log(log_str)
+            self.distribute_final_surplus = True
+            return True
+        else:
+            log_str += "No candidates can get enough votes to get there expenses back (No final transfer needed).\n"
+            self.write_log(log_str)
+            return False
+
+
+
+
+
+
+
+
+
+
 
 
 
