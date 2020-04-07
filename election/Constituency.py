@@ -541,7 +541,8 @@ class Constituency:
         Test elected candidate to see if any have a surplus of votes
         :return: Boolean
         """
-        for i in self.elected_cand:
+        self.total_surplus = 0
+        for i in self.candidates:
             if i.surplus > 0:
                 self.total_surplus += i.surplus
 
@@ -663,8 +664,8 @@ class Constituency:
 
     def excluded_vote_transfer(self, candidates):
         """
-        para
-        return: none:
+        :param:
+        :return: none:
         """
         non_transferable = []
         log_str = "excluded_vote_transfer\n"
@@ -709,8 +710,9 @@ class Constituency:
                     trans_per_cand = self.transfer_candidate(self.transfer_votes, cand_with_transfer.surplus)
                     vote_per_cand = self.proportion_amount(trans_per_cand, cand_with_transfer.surplus)
                     self.proportion_transfer(cand_with_transfer.surplus, self.transfer_votes, vote_per_cand)
+                    self.candidates_with_surplus.surplus = 0
                     if sum(vote_per_cand) < cand_with_transfer.surplus:
-                        log_str += "Some of valid transfers is less than that total surplus.\n"
+                        log_str += "Sum of valid transfers is less than that total surplus.\n"
                         self.non_transferable.append(cand_with_transfer.surplus - sum(vote_per_cand))
                         log_str += "Non-transferable votes={}.\n".format(cand_with_transfer.surplus - sum(vote_per_cand))
                         cand_with_transfer.votes_per_count.append(cand_with_transfer.surplus * -1)
@@ -919,13 +921,15 @@ class Constituency:
         
         while len(self.elected_cand) < self.num_seats:
             self.increase_count()
+            print("1 Count Number {}, Surplus {}".format(self.count, self.total_surplus))
             self.next_transfer()
+            print("2 Count Number {}, Surplus {}".format(self.count, self.total_surplus))
             self.candidate_votes_update()
+            print("3 Count Number {}, Surplus {}".format(self.count, self.total_surplus))
             self.check_elected()
             self.set_surplus()
-            if self.count == 8:
-                print("The total surpus is {}".format(self.total_surplus))
-            if self.count == 9:
+            print("4 Count Number {}, Surplus is {}".format(self.count, self.total_surplus))
+            if self.count == 10:
                 self.print_candidate_details()
 
 
