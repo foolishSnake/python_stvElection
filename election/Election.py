@@ -15,8 +15,8 @@ class Election:
         """
         read_json takes a list of str for the name of all json files.
         Uses the json to generate a Constituency objects that gets append to the Election constituency attribute
-        :param json_files:
-        :return:
+        :param: json_files:
+        :return: None
         """
         self.file_access.write_log("Attempting to read the json files {}".format(json_files))
         for i in json_files:

@@ -126,7 +126,7 @@ class Constituency:
                 if i.num_votes >= self.quota:
                     i.elected = True
                     self.elected_cand.append(i)
-                    i.set_surplus(self.quota)
+                    # i.set_surplus(self.quota)
                     self.available_cand_remove(i)
                     self.transfer_round += i.surplus
                     log_str += "{}, {}".format(i.name, "Quota meet.\n")
@@ -502,6 +502,7 @@ class Constituency:
         self.total_surplus = 0
         self.candidates_with_surplus = []
         for i in self.elected_cand:
+            i.surplus = 0
             if i.num_votes > self.quota:
                 i.set_surplus(self.quota)
                 surplus = True
@@ -553,19 +554,28 @@ class Constituency:
         """
         Tests if a surplus can be distributed As per ELECTORAL ACT 1992
         (As amended by the Electoral (Amendment) Act 2001) Section 121 - 8
+        Return True if rule is meet and False if not.
         :param: none:
-        :return: Boolean False if rule is met andTrue if not met.
+        :return: Boolean:
         """
         lowest_cand = self.lowest_votes(self.available_cand)
-        if self.total_surplus < self.quota - self.highest_continuing(self.available_cand).num_votes \
-                and self.total_surplus < self.second_lowest(lowest_cand).num_votes - lowest_cand.num_votes \
-                and (self.total_surplus + lowest_cand.num_votes < self.expenses_quota \
-                    or not lowest_cand.return_expenses):
-            self.write_log("Constituency.test_distribute_surplus method: Transfer surplus = {}".format("False"))
-            return False
-        else:
+        highest_continuing = self.highest_continuing(self.available_cand)
+        second_lowest = self.second_lowest(lowest_cand)
+        quota = self.quota
+        total_suplus = self.total_surplus
+        con_1_value = total_suplus + highest_continuing.num_votes
+        con_1 = self.total_surplus + highest_continuing.num_votes >= self.quota
+        con_2 = lowest_cand.num_votes + self.total_surplus >= second_lowest.num_votes
+        con_3 = not lowest_cand.return_expenses and lowest_cand.num_votes + self.total_surplus >= self.expenses_quota
+        # if self.total_surplus + highest_continuing.num_votes >= self.quota or \
+        #     lowest_cand.num_votes + self.total_surplus >= second_lowest.num_votes or \
+        #         not lowest_cand.return_expenses and lowest_cand.num_votes + self.total_surplus >= self.expenses_quota:
+        if con_1 or con_2 or con_3:
             self.write_log("Constituency.test_distribute_surplus method: Transfer surplus = {}".format("True"))
             return True
+        else:
+            self.write_log("Constituency.test_distribute_surplus method: Transfer surplus = {}".format("False"))
+            return False
 
     def candidate_highest_surplus(self):
         """
@@ -693,7 +703,7 @@ class Constituency:
             log_str += "{} has the highest amount of transfers.\n".format(cand_with_transfer.name)
             if self.test_distribute_surplus():
                 log_str += "We can distribute the surplus of {}.\n".format(cand_with_transfer.name)
-                if cand_with_transfer.surplus_transferred:
+                if len(cand_with_transfer.votes_per_count) > 1:
                     log_str += "The surplus was generated after the first count.\n"
                     self.transfers_per_candidate(cand_with_transfer.last_transfer)
                     trans_per_cand = self.transfer_candidate(self.transfer_votes, cand_with_transfer.surplus)
@@ -913,24 +923,29 @@ class Constituency:
             self.candidate_votes_update()
             self.check_elected()
             self.set_surplus()
+            if self.count == 8:
+                print("The total surpus is {}".format(self.total_surplus))
+            if self.count == 9:
+                self.print_candidate_details()
 
 
 
         # self.print_first()
-        self.check_elected()
-        self.set_surplus()
-        self.increase_count()
-        print("Count Number = {}".format(self.count))
-        self.next_transfer()
-        self.candidate_votes_update()
-        self.check_elected()
-        self.set_surplus()
-        self.increase_count()
-        print("Count Number = {}".format(self.count))
-        self.next_transfer()
-        self.candidate_votes_update()
-        self.check_elected()
-        self.set_surplus()
-        self.print_candidate_details()
-
-       # self.print_candidate_details()
+       #  self.check_elected()
+       #  self.set_surplus()
+       #  self.increase_count()
+       #  print("Count Number = {}".format(self.count))
+       #  self.next_transfer()
+       #  self.candidate_votes_update()
+       #  self.check_elected()
+       #  self.set_surplus()
+       #  self.increase_count()
+       #  self.print_candidate_details()
+       #  print("Count Number = {}".format(self.count))
+       #  self.next_transfer()
+       #  self.candidate_votes_update()
+       #  self.check_elected()
+       #  self.set_surplus()
+       #  # self.print_candidate_details()
+       #
+       # # self.print_candidate_details()
