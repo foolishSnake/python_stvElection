@@ -40,6 +40,7 @@ class Constituency:
                 log.write("{} @ {} \n".format(message, log_date))
         except FileNotFoundError as file_error:
             print("Could not access the log file " + str(file_error))
+
     # Keep this
     def set_available_cand(self):
         """
@@ -53,7 +54,6 @@ class Constituency:
             self.available_cand.append(i)
             self.write_log("Candidate {} added to Constituency.available_cand".format(i.name))
 
-
     # ?
     def available_cand_remove(self, cand):
         """
@@ -62,7 +62,9 @@ class Constituency:
         :return:
         """
         self.available_cand.remove(cand)
-        self.write_log("Constituency.available_cand_remove method has removed {} from constituency.available_cand list".format(cand.name))
+        self.write_log(
+            "Constituency.available_cand_remove method has removed {} from constituency.available_cand list".format(
+                cand.name))
 
     # Keep this
     def set_quota(self):
@@ -75,7 +77,8 @@ class Constituency:
         else:
             self.quota = int((len(self.ballot) / (self.num_seats + 1)) + 1)
             self.expenses_quota = int(self.quota / 4)
-        self.write_log("Constituency.set_quota method set quota as {} and expenses_quota {}".format(self.quota, self.expenses_quota))
+        self.write_log("Constituency.set_quota method set quota as {} and expenses_quota {}".format(self.quota,
+                                                                                                    self.expenses_quota))
 
         return None
 
@@ -110,7 +113,6 @@ class Constituency:
 
         self.write_log("Constituency.increase_count method.\n Increased count number to {}".format(self.count))
         return None
-
 
     def check_elected(self):
         """
@@ -155,7 +157,8 @@ class Constituency:
         for i in self.available_cand:
             if sorted_cand[0].num_votes == i.num_votes:
                 lowest_cand.append(i)
-                self.write_log("Constituency.lowest_votes method: Lowest Number of votes {} are {}".format(i.name, i.num_votes))
+                self.write_log(
+                    "Constituency.lowest_votes method: Lowest Number of votes {} are {}".format(i.name, i.num_votes))
         if len(lowest_cand) == 1:
             return lowest_cand[0]
         else:
@@ -177,7 +180,8 @@ class Constituency:
         for i in range(self.count):
             sorted_cand = sorted(cand, key=lambda candidate: candidate.votes_per_count[i])
             if sorted_cand[0].votes_per_count[i] < sorted_cand[1].votes_per_count[i]:
-                self.write_log("Constituency.lowest_per_count method. {} has the lowest votes".format(sorted_cand[0].name))
+                self.write_log(
+                    "Constituency.lowest_per_count method. {} has the lowest votes".format(sorted_cand[0].name))
                 return [sorted_cand[0]]
             else:
                 for j in sorted_cand:
@@ -232,7 +236,8 @@ class Constituency:
         log_str = "Constituency.highest_candidate.\n"
         sorted_cand = sorted(candidates, key=lambda candidate: candidate.num_votes, reverse=True)
         if len(candidates) == 1:
-            log_str += "Candidate {} is the highest with {} total votes.".format(sorted_cand[0].name, sorted_cand[0].num_votes)
+            log_str += "Candidate {} is the highest with {} total votes.".format(sorted_cand[0].name,
+                                                                                 sorted_cand[0].num_votes)
             self.write_log(log_str)
             return sorted_cand[0]
         elif sorted_cand[0].num_votes > sorted_cand[1].num_votes:
@@ -248,7 +253,10 @@ class Constituency:
             for i in range(self.count):
                 sorted_equal = sorted(equal_cand, key=lambda candidate: candidate.votes_per_count[i], reverse=True)
             if sorted_equal[0].votes_per_count[i] > sorted_equal[1].votes_per_count[i]:
-                log_str += "Candidate {} has the highest votes of {} for count {}".format(sorted_equal[0].name, sorted_equal[0].votes_per_count[i], i + 1)
+                log_str += "Candidate {} has the highest votes of {} for count {}".format(sorted_equal[0].name,
+                                                                                          sorted_equal[
+                                                                                              0].votes_per_count[i],
+                                                                                          i + 1)
                 self.write_log(log_str)
                 return [sorted_equal[0]]
             else:
@@ -380,9 +388,10 @@ class Constituency:
         for index, i in enumerate(votes_per_cand):
             for j in range(int(i)):
                 test = (self.candidates[index].last_transfer)
-                self.candidates[index].last_transfer.append(votes[index][len(votes[index])-(j + 1)])
+                self.candidates[index].last_transfer.append(votes[index][len(votes[index]) - (j + 1)])
 
-            log_str += "{} gets {} transferred votes.\n".format(self.candidates[index].name, len(self.candidates[index].last_transfer))
+            log_str += "{} gets {} transferred votes.\n".format(self.candidates[index].name,
+                                                                len(self.candidates[index].last_transfer))
         self.non_transferable.append(0)
         self.write_log(log_str)
         return None
@@ -432,15 +441,13 @@ class Constituency:
             self.non_transferable.append(surplus - sum(votes_per_cand))
         return None
 
-    def print_cand_last_trans(self):
+    def proportion_amount(self, votes_per_cand, surplus):
         """
-        Test method
+
+        :param votes_per_cand:
+        :param surplus:
         :return:
         """
-        for i in self.candidates:
-            print("Name {}, Number last_transfer {}".format(i.name, len(i.last_transfer)))
-
-    def proportion_amount(self, votes_per_cand, surplus):
         vote_amount = []
         for i in votes_per_cand:
             # Append the integer part of the vote amount
@@ -495,6 +502,7 @@ class Constituency:
     def set_surplus(self):
         """
         Check if a candidate has any surplus votes.
+        :param: None:
         :return: surplus: Bool: True if there are votes False it not
         """
         surplus = False
@@ -516,15 +524,6 @@ class Constituency:
             log_str += "These are no surplus votes"
             self.write_log(log_str)
             return surplus
-
-    def print_surplus(self):
-        """
-        Test method
-        :return:
-        """
-        for i in self.candidates:
-            if i.surplus > 0:
-                print("Constituency {} Candidate {} has {} surplus votes".format(self.name, i.name, i.surplus))
 
     def num_transferrable(self):
         number_transferrable = 0
@@ -562,15 +561,9 @@ class Constituency:
         lowest_cand = self.lowest_votes(self.available_cand)
         highest_continuing = self.highest_continuing(self.available_cand)
         second_lowest = self.second_lowest(lowest_cand)
-        quota = self.quota
-        total_suplus = self.total_surplus
-        con_1_value = total_suplus + highest_continuing.num_votes
         con_1 = self.total_surplus + highest_continuing.num_votes >= self.quota
         con_2 = lowest_cand.num_votes + self.total_surplus >= second_lowest.num_votes
         con_3 = not lowest_cand.return_expenses and lowest_cand.num_votes + self.total_surplus >= self.expenses_quota
-        # if self.total_surplus + highest_continuing.num_votes >= self.quota or \
-        #     lowest_cand.num_votes + self.total_surplus >= second_lowest.num_votes or \
-        #         not lowest_cand.return_expenses and lowest_cand.num_votes + self.total_surplus >= self.expenses_quota:
         if con_1 or con_2 or con_3:
             self.write_log("Constituency.test_distribute_surplus method: Transfer surplus = {}".format("True"))
             return True
@@ -629,7 +622,8 @@ class Constituency:
                 possible_transfer += i.num_votes
                 log_str += "{} has been eliminated\n".format(i.name)
             if 0 < index < len(eliminate_list) - 1:
-                if (possible_transfer + i.num_votes > eliminate_list[index + 1].num_votes) or (possible_transfer + i.num_votes > self.expenses_quota) :
+                if (possible_transfer + i.num_votes > eliminate_list[index + 1].num_votes) or (
+                        possible_transfer + i.num_votes > self.expenses_quota):
                     break
                 else:
                     exclusion.append(i)
@@ -681,12 +675,13 @@ class Constituency:
                     cand_non += 1
                 else:
                     self.candidates[index].last_transfer.append(j)
-            log_str += "{} transferred {} votes and had {} non-transferable votes\n".format(i.name, (len(votes) - cand_non), cand_non)
+            log_str += "{} transferred {} votes and had {} non-transferable votes\n".format(i.name,
+                                                                                            (len(votes) - cand_non),
+                                                                                            cand_non)
             i.votes_per_count.append(len(votes) * -1)
 
         self.non_transferable = non_transferable
         self.write_log(log_str)
-
 
     def next_transfer(self):
         """
@@ -734,8 +729,6 @@ class Constituency:
 
         self.write_log(log_str)
 
-
-
     def print_candidate_details(self):
         """
         Test method used to print the details of candidate attributes
@@ -777,8 +770,6 @@ class Constituency:
         lowest_cand = self.lowest_votes(self.available_cand)
         log_str = "fill_remaining_seats() Method\n"
 
-
-
         if num_continuing == available_seats:
             log_str += "Number of continuing candidates = number of seats to fill.\n"
             self.elected_remaining_cand()
@@ -790,7 +781,8 @@ class Constituency:
             log_str += "Number of continuing candidates = number of seats to fill plus 1.\n"
             second_lowest = self.second_lowest(lowest_cand)
             if lowest_cand.num_votes + self.total_surplus < second_lowest.num_votes:
-                log_str += "The lowest continuing candidate votes plus available surplus is less than second lowest candidates votes.\n{} is excluded".format(lowest_cand.name)
+                log_str += "The lowest continuing candidate votes plus available surplus is less than second lowest candidates votes.\n{} is excluded".format(
+                    lowest_cand.name)
                 lowest_cand.excluded = True
                 self.eliminated_cand.append(lowest_cand)
                 self.available_cand_remove(lowest_cand)
@@ -799,8 +791,11 @@ class Constituency:
                 self.write_log(log_str)
                 return True
             else:
-                log_str += "Lowest candidate {} plus surplus > Second lowest {} votes.\n".format(lowest_cand.name, second_lowest.name)
-                log_str += "{} vote plus surplus of {} could bring them higher than {}.\n".format(lowest_cand.name, self.test_distribute_surplus(), second_lowest.name)
+                log_str += "Lowest candidate {} plus surplus > Second lowest {} votes.\n".format(lowest_cand.name,
+                                                                                                 second_lowest.name)
+                log_str += "{} vote plus surplus of {} could bring them higher than {}.\n".format(lowest_cand.name,
+                                                                                                  self.test_distribute_surplus(),
+                                                                                                  second_lowest.name)
 
         if available_seats == 1:
             log_str += "Available seats = 1\n"
@@ -813,7 +808,8 @@ class Constituency:
                     number_votes_other += i.num_votes
 
             if number_votes_other + self.total_surplus < highest_candidate.num_votes:
-                log_str += "Highest continuing candidates votes are greater then the sun of all other continuing candidates plus any surplus not transferred.\n {} is elected.\n".format(highest_candidate.name)
+                log_str += "Highest continuing candidates votes are greater then the sun of all other continuing candidates plus any surplus not transferred.\n {} is elected.\n".format(
+                    highest_candidate.name)
                 highest_candidate.elected = True
                 self.elected_cand.append(highest_candidate)
                 self.available_cand_remove(highest_candidate)
@@ -904,62 +900,71 @@ class Constituency:
             self.write_log(log_str)
             return False
 
+    def results_csv(self):
+        """
+        Creates a .csv file with the details of the election.
+        :param: None
+        :return: None
+        """
+        log_str = "result_csv() method.\n"
+        file_name = "{}_{}_{}.csv".format(self.name, self.date.get("Year"), self.election_type)
+        log_str += "Creating a csv for {} called {}\n".format(self.name, file_name)
+        with open(file_name, 'a') as csv:
+            csv.writelines(
+                "{} Election {}, Constituency of {}\n".format(self.election_type, self.date.get("Year"), self.name))
+            csv.writelines(
+                "Valid Poll: {}\n Quota: {}\nExpense Quota: {}\nNumber of Seats: {}\n".format(len(self.ballot),
+                                                                                              self.quota,
+                                                                                              self.expenses_quota,
+                                                                                              self.num_seats))
+            csv.writelines("\n")
+            count_num_str = ""
+            for i in range(self.count):
+                if i != self.count - 1:
+                    count_num_str += "Count {},".format(i + 1)
+                else:
+                    count_num_str += "Total,"
 
+            csv.writelines("Name of Candidates,{}\n".format(count_num_str))
+            cand_votes = ""
+            for i in self.candidates:
+                cand_votes += "{} ({})".format(i.name, i.party)
+                for index, j in enumerate(i.votes_per_count):
+                    if index == len(i.votes_per_count) - 1:
+                        cand_votes += ",{}, {}".format(j, sum(i.votes_per_count))
+                    else:
+                        cand_votes += ",{}".format(j)
+                csv.writelines("{}\n".format(cand_votes))
+                cand_votes = ""
 
+            csv.writelines("\n")
+            csv.writelines("Elected Candidates\n")
+            for i in self.elected_cand:
+                csv.writelines("{} {}\n".format(i.name, i.party))
 
-
-
-
-
-
-
-
-
+        self.write_log(log_str)
 
     def count_ballot(self):
+        print("{}_{}_{}.csv".format(self.name, self.date.get("Year"), self.election_type))
         self.set_available_cand()
         self.set_quota()
         self.increase_count()
         self.first_count()
         self.check_elected()
         self.set_surplus()
-        
+
         while self.num_seats != len(self.elected_cand):
             self.increase_count()
             if self.fill_remaining_seats():
+                # self.candidate_votes_update()
                 self.print_candidate_details()
             else:
-                print("1 Count Number {}, Surplus {}".format(self.count, self.total_surplus))
                 self.next_transfer()
-                print("2 Count Number {}, Surplus {}".format(self.count, self.total_surplus))
                 self.candidate_votes_update()
-                print("3 Count Number {}, Surplus {}".format(self.count, self.total_surplus))
                 self.check_elected()
                 if len(self.elected_cand) == self.num_seats:
                     break
                 self.set_surplus()
-                print("4 Count Number {}, Surplus is {}, Num seats {}, available cand {}".format(self.count, self.total_surplus, len(self.elected_cand), len(self.available_cand)))
 
+        self.results_csv()
 
-
-
-
-        # self.print_first()
-       #  self.check_elected()
-       #  self.set_surplus()
-       #  self.increase_count()
-       #  print("Count Number = {}".format(self.count))
-       #  self.next_transfer()
-       #  self.candidate_votes_update()
-       #  self.check_elected()
-       #  self.set_surplus()
-       #  self.increase_count()
-       #  self.print_candidate_details()
-       #  print("Count Number = {}".format(self.count))
-       #  self.next_transfer()
-       #  self.candidate_votes_update()
-       #  self.check_elected()
-       #  self.set_surplus()
-       #  # self.print_candidate_details()
-       #
-       # # self.print_candidate_details()
