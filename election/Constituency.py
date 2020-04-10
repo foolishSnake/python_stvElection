@@ -939,6 +939,7 @@ class Constituency:
             csv.writelines("\n")
             count_num_str = ""
             non_trans = "Non-transferrable papers not effective,"
+            non_trans_sum = "Non-transferrable papers Total:,"
             for i in range(self.count):
                 if i != self.count - 1:
                     count_num_str += "Count {},".format(i + 1)
@@ -947,19 +948,37 @@ class Constituency:
 
             csv.writelines("Name of Candidates,{}\n".format(count_num_str))
             cand_votes = ""
+            cand_total = ""
+            sum_votes = 0
             for i in self.candidates:
                 cand_votes += "{} ({})".format(i.name, i.party)
+                cand_total += "{} Total:".format(i.name)
                 for index, j in enumerate(i.votes_per_count):
+                    if index == 0:
+                        sum_votes = j
+                    else:
+                        sum_votes += j
+
                     if index == len(i.votes_per_count) - 1:
                         cand_votes += ",{}, {}".format(j, sum(i.votes_per_count))
+                        cand_total += ",{}".format(sum_votes)
                     else:
                         cand_votes += ",{}".format(j)
+                        cand_total += ",{}".format(sum_votes)
                 csv.writelines("{}\n".format(cand_votes))
+                csv.writelines("{}\n".format(cand_total))
                 cand_votes = ""
+                cand_total = ""
+                sum_votes = 0
+
             non_transferable = self.num_non_transferable()
+            sum_non = 0
             for i in non_transferable:
                 non_trans += "{},".format(i)
-            csv.writelines("{}\n".format(non_trans))
+                sum_non += i
+                non_trans_sum += "{},".format(sum_non)
+            csv.writelines("{}{}\n".format(non_trans, sum(non_transferable)))
+            csv.writelines("{}\n".format(non_trans_sum))
             csv.writelines("\n")
             csv.writelines("Elected Candidates\n")
             for i in self.elected_cand:
