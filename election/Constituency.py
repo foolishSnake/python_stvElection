@@ -900,6 +900,25 @@ class Constituency:
             self.write_log(log_str)
             return False
 
+    def num_non_transferable(self):
+        total_valid = len(self.ballot)
+        non_transferable = []
+
+        for i in range(self.count - 1):
+            votes_count = 0
+            negative_count = 0
+            for j in self.candidates:
+                if j.votes_per_count[i] < 0:
+                    negative_count += j.votes_per_count[i]
+                else:
+                    votes_count += j.votes_per_count[i]
+            if i == 0:
+                non_transferable.append(0)
+            else:
+                non_transferable.append((votes_count + negative_count)*-1)
+
+        return non_transferable
+
     def results_csv(self):
         """
         Creates a .csv file with the details of the election.
@@ -919,6 +938,7 @@ class Constituency:
                                                                                               self.num_seats))
             csv.writelines("\n")
             count_num_str = ""
+            non_trans = "Non-transferrable papers not effective,"
             for i in range(self.count):
                 if i != self.count - 1:
                     count_num_str += "Count {},".format(i + 1)
@@ -936,7 +956,10 @@ class Constituency:
                         cand_votes += ",{}".format(j)
                 csv.writelines("{}\n".format(cand_votes))
                 cand_votes = ""
-
+            non_transferable = self.num_non_transferable()
+            for i in non_transferable:
+                non_trans += "{},".format(i)
+            csv.writelines("{}\n".format(non_trans))
             csv.writelines("\n")
             csv.writelines("Elected Candidates\n")
             for i in self.elected_cand:
