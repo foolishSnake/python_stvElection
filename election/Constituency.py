@@ -265,14 +265,14 @@ class Constituency:
                 self.write_log(log_str)
                 return cand
 
-    # Remove this method after testing
-    def print_elected(self):
-        """
-        Test method
-        :return:
-        """
-        for i in self.candidates:
-            print(i.name + " " + str(i.elected) + " " + str(i.return_expenses))
+    # # Remove this method after testing
+    # def print_elected(self):
+    #     """
+    #     Test method
+    #     :return:
+    #     """
+    #     for i in self.candidates:
+    #         print(i.name + " " + str(i.elected) + " " + str(i.return_expenses))
 
     # def number_transfers(self):
     #     """
@@ -368,6 +368,7 @@ class Constituency:
 
     def sum_transferable(self, votes):
         """
+        Not sure if used?
         Takes a list of transferable votes and get the total for all ballots in it.
         :param votes: List of transferable votes.
         :return: total_transferable: int: The sum of all transferable votes.
@@ -380,6 +381,7 @@ class Constituency:
 
     def transfer_candidate(self, votes, surplus):
         """
+        Not sure if used?
         Take a list of transferable votes and creates a list of the number of votes each candidate has to get.
         The index in the list matches the cand_index value in the candidate object.
         :param surplus: int: value of the surplus votes
@@ -453,6 +455,7 @@ class Constituency:
 
     def proportion_post_transfer(self, surplus, votes, votes_per_cand):
         """
+        Not sure if this is used
         Transfers votes from a candidates if the candidate got elected due to a transfer. Updates the count number and
         the amount of non-transferable attributes when finished transferring.
         :param surplus:
@@ -469,7 +472,7 @@ class Constituency:
 
     def proportion_amount(self, votes_per_cand, surplus):
         """
-
+        Need comments and log
         :param votes_per_cand:
         :param surplus:
         :return:
@@ -552,6 +555,10 @@ class Constituency:
             return surplus
 
     def num_transferrable(self):
+        """
+        not sure if this is uesd/ needed
+        :return:
+        """
         number_transferrable = 0
         for i in self.candidates:
             if i.elected:
@@ -666,7 +673,7 @@ class Constituency:
 
     def vote_consolidation(self, cand):
         """
-        Consolidates all the votes for an elemanted candidate into a single list.
+        Consolidates all the votes for an eliminted candidate into a single list.
         return: consolidated_votes:
         """
         consolidated_votes = []
@@ -721,33 +728,15 @@ class Constituency:
         self.num_transferrable()
 
         if self.check_surplus() and self.test_distribute_surplus():
+            log_str += "There is a surplus and it can be distributed.\n"
 
             cand_with_transfer = self.candidate_highest_surplus()
-            log_str += "There are surplus votes and it can be distributed.\n".format(cand_with_transfer.name)
-            if len(cand_with_transfer.votes_per_count) > 1:
-                log_str += "The surplus was generated after the first count.\n"
-                self.transfers_per_candidate(cand_with_transfer.last_transfer)
-                trans_per_cand = self.transfer_candidate(self.transfer_votes, cand_with_transfer.surplus)
-                vote_per_cand = self.proportion_amount(trans_per_cand, cand_with_transfer.surplus)
-                self.proportion_transfer(cand_with_transfer.surplus, self.transfer_votes, vote_per_cand)
-                self.candidates_with_surplus.surplus = 0
-                if sum(vote_per_cand) < cand_with_transfer.surplus:
-                    log_str += "Sum of valid transfers is less than that total surplus.\n"
-                    self.non_transferable.append(cand_with_transfer.surplus - sum(vote_per_cand))
-                    log_str += "Non-transferable votes={}.\n".format(cand_with_transfer.surplus - sum(vote_per_cand))
-                    cand_with_transfer.votes_per_count.append(cand_with_transfer.surplus * -1)
-                    cand_with_transfer.surplus = 0
-                self.transfer_votes = []
+            log_str += "{} has the highest surplus, it will be transferred.\n".format(cand_with_transfer.name)
+            value = self.transfers(cand_with_transfer)
+            if value:
+                log_str += "The surplus was transferred.\n"
             else:
-                log_str += "{} surplus is from the first count.\n".format(cand_with_transfer.name)
-                self.transfers_per_candidate(cand_with_transfer.first_votes)
-                trans_per_cand = self.transfer_candidate(self.transfer_votes, cand_with_transfer.surplus)
-                vote_per_cand = self.proportion_amount(trans_per_cand, cand_with_transfer.surplus)
-                self.proportion_transfer(cand_with_transfer.surplus, self.transfer_votes, vote_per_cand)
-                cand_with_transfer.surplus_transferred = True
-                cand_with_transfer.votes_per_count.append(cand_with_transfer.surplus * -1)
-                cand_with_transfer.surplus = 0
-                self.transfer_votes = []
+                log_str += "The surplus was not transferred.\n"
         else:
             log_str += "There is no surplus that is allowed for transfer. Eliminating candidate/s.\n"
             exclude = self.eliminate_cand()
@@ -1063,26 +1052,42 @@ class Constituency:
         self.write_log(log_str)
 
 
-    def final_vote_transfer(self, elimited_cand):
+    def final_vote_transfer(self, eliminited_cand):
+        log_str = "final_vote_transfer() Method\n"
+
         for i in self.final_candidates:
             self.available_cand.append(i)
+        log_str += "Added last eliminited candidates into self.available_cand List.\n"
 
+        while True:
+            self.increase_count()
+            if self.check_surplus():
+                log_str += "There is a surplus for transfer.\n"
+                cand_with_transfer = self.candidate_highest_surplus()
+                log_str += "Distribute {} surplus votes to eliminated candidates.\n".format(cand_with_transfer.name)
+                self.transfers(cand_with_transfer)
+                all_expenses = []
+                for i in self.candidates:
+                    if i in eliminited_cand:
+                        i.votes_per_count.append(len(i.last_transfer))
+                        i.transferred_votes.append(copy.deepcopy(i.last_transfer))
+                        i.last_transfer = []
+                        if i.num_votes >= self.expenses_quota:
+                            log_str += "{} has reached expenses quota.\n".format(i.name)
+                            all_expenses.append(True)
+                        else:
+                            log_str += "{} has not reached expenses quota.\n".format(i.name)
+                            all_expenses.append(False)
+                    else:
+                        if i is cand_with_transfer:
+                            i.votes_per_count.append(cand_with_transfer.surplus * -1)
+                        else:
+                            i.votes_per_count.append(0)
+                if False not in all_expenses:
+                    log_str += "All Final eliminated candidates have reached expenses quota.\n"
+                    break
+            else:
+                log_str += "There is no more surplus to transfer.\n"
+                break
 
-
-        log_str = "final_vote_transfer() Method\n"
-        cand_with_transfer = self.candidate_highest_surplus()
-        log_str += "Distribute {} surplus votes to elimanted candidates.\n".format(cand_with_transfer.name)
-
-
-        self.transfers_per_candidate(cand_with_transfer.last_transfer)
-        trans_per_cand = self.transfer_candidate(self.transfer_votes, cand_with_transfer.surplus)
-        vote_per_cand = self.proportion_amount(trans_per_cand, cand_with_transfer.surplus)
-        self.proportion_transfer(cand_with_transfer.surplus, self.transfer_votes, vote_per_cand)
-        self.candidates_with_surplus.surplus = 0
-        if sum(vote_per_cand) < cand_with_transfer.surplus:
-            log_str += "Sum of valid transfers is less than that total surplus.\n"
-            self.non_transferable.append(cand_with_transfer.surplus - sum(vote_per_cand))
-            log_str += "Non-transferable votes={}.\n".format(cand_with_transfer.surplus - sum(vote_per_cand))
-            cand_with_transfer.votes_per_count.append(cand_with_transfer.surplus * -1)
-            cand_with_transfer.surplus = 0
-        self.transfer_votes = []
+        self.write_log(log_str)
