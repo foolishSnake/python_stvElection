@@ -274,16 +274,16 @@ class Constituency:
         for i in self.candidates:
             print(i.name + " " + str(i.elected) + " " + str(i.return_expenses))
 
-    def number_transfers(self):
-        """
-        This method has an issue. It can return a candidate that has already had their surplus transferred.
-        :return:
-        """
-        for i in self.elected_cand:
-            if i.elected and i.surplus_transferred:
-                return len(i.first_votes) - self.quota
-            else:
-                return 0
+    # def number_transfers(self):
+    #     """
+    #     This method has an issue. It can return a candidate that has already had their surplus transferred.
+    #     :return:
+    #     """
+    #     for i in self.elected_cand:
+    #         if i.elected and i.surplus_transferred:
+    #             return len(i.first_votes) - self.quota
+    #         else:
+    #             return 0
 
     # I don't think I will use this method now
     #     def unelected(self):
@@ -293,16 +293,42 @@ class Constituency:
     #                 self.available_cand.append(index)
     #         return self.available_cand
 
-    def transfers(self):
-        """
-        This needs to return a list of all candidates that have a surplus
-        :return:
-        """
-        for i in self.candidates:
-            if self.count == 1:
-                if i.elected and len(i.first_votes) > self.quota:
-                    return i.first_vote
-        return None
+    def transfers(self, cand):
+        log_str = "transfers() Method.\n"
+        return_value = False
+
+        log_str += "There are surplus votes and it can be distributed.\n".format(cand.name)
+        if len(cand.votes_per_count) > 1:
+            log_str += "The surplus was generated after the first count.\n"
+            self.transfers_per_candidate(cand.last_transfer)
+            trans_per_cand = self.transfer_candidate(self.transfer_votes, cand.surplus)
+            vote_per_cand = self.proportion_amount(trans_per_cand, cand.surplus)
+            self.proportion_transfer(cand.surplus, self.transfer_votes, vote_per_cand)
+            self.candidates_with_surplus.surplus = 0
+            return_value = True
+            if sum(vote_per_cand) < cand.surplus:
+                log_str += "Sum of valid transfers is less than that total surplus.\n"
+                self.non_transferable.append(cand.surplus - sum(vote_per_cand))
+                log_str += "Non-transferable votes={}.\n".format(cand.surplus - sum(vote_per_cand))
+                cand.votes_per_count.append(cand.surplus * -1)
+                cand.surplus = 0
+                return_value = True
+            self.transfer_votes = []
+        else:
+            log_str += "{} surplus is from the first count.\n".format(cand.name)
+            self.transfers_per_candidate(cand.first_votes)
+            trans_per_cand = self.transfer_candidate(self.transfer_votes, cand.surplus)
+            vote_per_cand = self.proportion_amount(trans_per_cand, cand.surplus)
+            self.proportion_transfer(cand.surplus, self.transfer_votes, vote_per_cand)
+            cand.surplus_transferred = True
+            cand.votes_per_count.append(cand.surplus * -1)
+            cand.surplus = 0
+            self.transfer_votes = []
+            return_value = True
+
+        self.write_log(log_str)
+        return return_value
+
 
     def next_pref(self, vote):
         """
@@ -729,6 +755,9 @@ class Constituency:
 
         self.write_log(log_str)
 
+
+
+
     def print_candidate_details(self):
         """
         Test method used to print the details of candidate attributes
@@ -900,11 +929,17 @@ class Constituency:
             self.write_log(log_str)
             return False
 
-    def num_non_transferable(self):
+    def num_non_transferrable(self):
+        """
+        Creates a list of the number of on transferrable votes for each count.
+        :param
+        :return: non_transferrable: List
+        """
         total_valid = len(self.ballot)
-        non_transferable = []
+        non_transferrable = []
+        log_str = "num_non_transferrable() Method.\n"
 
-        for i in range(self.count - 1):
+        for i in range(self.count):
             votes_count = 0
             negative_count = 0
             for j in self.candidates:
@@ -913,11 +948,12 @@ class Constituency:
                 else:
                     votes_count += j.votes_per_count[i]
             if i == 0:
-                non_transferable.append(0)
+                non_transferrable.append(0)
             else:
-                non_transferable.append((votes_count + negative_count)*-1)
-
-        return non_transferable
+                non_transferrable.append((votes_count + negative_count)*-1)
+        log_str += "List of non-transferrable votes created.\n"
+        self.write_log(log_str)
+        return non_transferrable
 
     def results_csv(self):
         """
@@ -941,7 +977,7 @@ class Constituency:
             non_trans = "Non-transferrable papers not effective,"
             non_trans_sum = "Non-transferrable papers Total:,"
             for i in range(self.count):
-                if i != self.count - 1:
+                if i != self.count:
                     count_num_str += "Count {},".format(i + 1)
                 else:
                     count_num_str += "Total,"
@@ -956,13 +992,10 @@ class Constituency:
                 for index, j in enumerate(i.votes_per_count):
                     if index == 0:
                         sum_votes = j
-                    else:
-                        sum_votes += j
-
-                    if index == len(i.votes_per_count) - 1:
-                        cand_votes += ",{}, {}".format(j, sum(i.votes_per_count))
+                        cand_votes += ",{}".format(j)
                         cand_total += ",{}".format(sum_votes)
                     else:
+                        sum_votes += j
                         cand_votes += ",{}".format(j)
                         cand_total += ",{}".format(sum_votes)
                 csv.writelines("{}\n".format(cand_votes))
@@ -971,42 +1004,85 @@ class Constituency:
                 cand_total = ""
                 sum_votes = 0
 
-            non_transferable = self.num_non_transferable()
+            non_transferrable = self.num_non_transferrable()
             sum_non = 0
-            for i in non_transferable:
+            for i in non_transferrable:
                 non_trans += "{},".format(i)
                 sum_non += i
                 non_trans_sum += "{},".format(sum_non)
-            csv.writelines("{}{}\n".format(non_trans, sum(non_transferable)))
+            csv.writelines("{}\n".format(non_trans))
             csv.writelines("{}\n".format(non_trans_sum))
             csv.writelines("\n")
             csv.writelines("Elected Candidates\n")
             for i in self.elected_cand:
                 csv.writelines("{} {}\n".format(i.name, i.party))
-
+        log_str += "The csv fill has finished writing.\n"
         self.write_log(log_str)
 
     def count_ballot(self):
-        print("{}_{}_{}.csv".format(self.name, self.date.get("Year"), self.election_type))
+        """
+        Counts the ballots for the constituency. When finished creates a csv file.
+        :param:
+        :return:
+        """
+
+        log_str = "count_ballot() Method\n"
+
         self.set_available_cand()
         self.set_quota()
         self.increase_count()
         self.first_count()
         self.check_elected()
+        log_str += "First count finished.\n"
         self.set_surplus()
 
         while self.num_seats != len(self.elected_cand):
-            self.increase_count()
+            log_str += "Test if we can fill remaining seats.\n"
             if self.fill_remaining_seats():
-                # self.candidate_votes_update()
-                self.print_candidate_details()
+                log_str += "Remaining seats can be filled"
+                # self.print_candidate_details()
+
             else:
+                log_str += "Remaining seats can't be filled.\n"
+                self.increase_count()
+                log_str += "Starting count number {}".format(self.count)
                 self.next_transfer()
                 self.candidate_votes_update()
                 self.check_elected()
+                log_str += "Test if all seats are filled.\n"
                 if len(self.elected_cand) == self.num_seats:
+                    log_str += "All seats are filled count has finished.\n"
                     break
+                log_str += "There are still seats to fill, count continues.\n"
                 self.set_surplus()
+        print("Number of available candidates {}".format(len(self.available_cand)))
 
+        log_str += "Writing csv file called \"{}_{}_{}.csv\"\n".format(self.name, self.date.get("Year"), self.election_type)
         self.results_csv()
+        log_str += "Constituency {} count has finished.\n\n".format(self.name)
+        self.write_log(log_str)
 
+
+    def final_vote_transfer(self, elimited_cand):
+        for i in self.final_candidates:
+            self.available_cand.append(i)
+
+
+
+        log_str = "final_vote_transfer() Method\n"
+        cand_with_transfer = self.candidate_highest_surplus()
+        log_str += "Distribute {} surplus votes to elimanted candidates.\n".format(cand_with_transfer.name)
+
+
+        self.transfers_per_candidate(cand_with_transfer.last_transfer)
+        trans_per_cand = self.transfer_candidate(self.transfer_votes, cand_with_transfer.surplus)
+        vote_per_cand = self.proportion_amount(trans_per_cand, cand_with_transfer.surplus)
+        self.proportion_transfer(cand_with_transfer.surplus, self.transfer_votes, vote_per_cand)
+        self.candidates_with_surplus.surplus = 0
+        if sum(vote_per_cand) < cand_with_transfer.surplus:
+            log_str += "Sum of valid transfers is less than that total surplus.\n"
+            self.non_transferable.append(cand_with_transfer.surplus - sum(vote_per_cand))
+            log_str += "Non-transferable votes={}.\n".format(cand_with_transfer.surplus - sum(vote_per_cand))
+            cand_with_transfer.votes_per_count.append(cand_with_transfer.surplus * -1)
+            cand_with_transfer.surplus = 0
+        self.transfer_votes = []
