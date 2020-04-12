@@ -300,11 +300,12 @@ class Constituency:
         log_str += "There are surplus votes and it can be distributed.\n".format(cand.name)
         if len(cand.votes_per_count) > 1:
             log_str += "The surplus was generated after the first count.\n"
-            self.transfers_per_candidate(cand.last_transfer)
+            self.transfers_per_candidate(cand.transferred_votes[-1])
             trans_per_cand = self.transfer_candidate(self.transfer_votes, cand.surplus)
             vote_per_cand = self.proportion_amount(trans_per_cand, cand.surplus)
             self.proportion_transfer(cand.surplus, self.transfer_votes, vote_per_cand)
-            self.candidates_with_surplus.surplus = 0
+            cand.votes_per_count.append(cand.surplus * -1)
+            cand.surplus = 0
             return_value = True
             if sum(vote_per_cand) < cand.surplus:
                 log_str += "Sum of valid transfers is less than that total surplus.\n"
@@ -338,12 +339,12 @@ class Constituency:
         :return: index: a integer with the index of the candidate getting the next preference
         """
         low = 100
-        index = None
+        candidate = None
         for j in self.available_cand:
             if low > vote[j.cand_index] > 1:
                 low = vote[j.cand_index]
-                index = j.cand_index
-        return index
+                candidate = j
+        return candidate
 
     def transfers_per_candidate(self, votes):
         """
@@ -358,11 +359,11 @@ class Constituency:
             self.transfer_votes.append([])
 
         for i in votes:
-            index = self.next_pref(i)
-            if index is None:
+            candidate = self.next_pref(i)
+            if candidate is None:
                 temp_non_transferable.append(i)
             else:
-                self.transfer_votes[index].append(i)
+                self.transfer_votes[candidate.cand_index].append(i)
         self.write_log("Constituency.transfers_per_candidate method finished")
         return len(temp_non_transferable)
 
@@ -406,20 +407,36 @@ class Constituency:
         Takes three parameter surplus, votes and votes_per_cand. The index of the elements in votes_per_cand is the same index as
         a candidates index. We take the last vote in the votes for each candidate and transfer the amount of votes they
         require based on the value in votes_per_cand. Append the number of votes transferred to the votes_per_count.
-        Increase the count by 1 by calling increase_count() method. Update the amount of non_transferable votes.
+        Update the amount of non_transferable votes.
         :param surplus: number of votes in the surplus
         :param votes: list of the votes to be transferred
         :param votes_per_cand: list of the number of votes each candidate has to get
         :return: None
         """
-        log_str = "Constituency.proportion_transfer method\n"
-        for index, i in enumerate(votes_per_cand):
-            for j in range(int(i)):
-                test = (self.candidates[index].last_transfer)
-                self.candidates[index].last_transfer.append(votes[index][len(votes[index]) - (j + 1)])
+        log_str = "Constituency.proportion_transfer() Method\n"
 
-            log_str += "{} gets {} transferred votes.\n".format(self.candidates[index].name,
-                                                                len(self.candidates[index].last_transfer))
+        for index, i in enumerate(votes):
+            if len(i) == 0:
+                log_str += "{} get 0 transferred votes.\n".format(self.candidates[index])
+                self.write_log(log_str)
+                continue
+            else:
+                self.candidates[index].last_transfer = []
+                for j in i[::-1]:
+                    if len(self.candidates[index].last_transfer) == votes_per_cand[index]:
+                        break
+                    else:
+                        self.candidates[index].last_transfer.append(j)
+                        # elf.write_log("append a vote to {}".format(self.candidates[index].name))
+                    log_str += "{} gets {} transferred votes.\n".format(self.candidates[index].name, len(self.candidates[index].last_transfer))
+
+        # for index, i in enumerate(votes_per_cand):
+        #     for j in range(int(i)):
+        #         reversed_votes = reversed(votes[index])
+        #         self.candidates[index].last_transfer.append(reversed_votes[j])
+        #     log_str += "{} gets {} transferred votes.\n".format(self.candidates[index].name,
+        #                                                         len(self.candidates[index].last_transfer))
+
         self.non_transferable.append(0)
         self.write_log(log_str)
         return None
@@ -702,12 +719,12 @@ class Constituency:
             log_str += "Transfering votes from {}\n".format(i.name)
             votes = self.vote_consolidation(i)
             for j in votes:
-                index = self.next_pref(j)
-                if not index:
+                candidate = self.next_pref(j)
+                if candidate is None:
                     non_transferable.append(j)
                     cand_non += 1
                 else:
-                    self.candidates[index].last_transfer.append(j)
+                    self.candidates[candidate.cand_index].last_transfer.append(j)
             log_str += "{} transferred {} votes and had {} non-transferable votes\n".format(i.name,
                                                                                             (len(votes) - cand_non),
                                                                                             cand_non)
@@ -734,6 +751,7 @@ class Constituency:
             log_str += "{} has the highest surplus, it will be transferred.\n".format(cand_with_transfer.name)
             value = self.transfers(cand_with_transfer)
             if value:
+                cand_with_transfer.votes_per_count.append(cand_with_transfer.surplus * -1)
                 log_str += "The surplus was transferred.\n"
             else:
                 log_str += "The surplus was not transferred.\n"

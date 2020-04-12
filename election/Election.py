@@ -26,9 +26,11 @@ class Election:
     def count_ballots(self):
         return 0
 
-
+# json = ["DublinWest2002.json", "Meath2002.json"]
 # json = ["DublinNorth2002.json", "DublinWest2002.json", "Meath2002.json"]
-json = ["Meath2002.json"]
+# json = ["Meath2002.json"]
+# json = ["DublinNorth2002.json"]
+json = ["DublinWest2002.json"]
 
 election = Election("General", {"Day": 17, "Month": 5, "Year": 2002})
 
