@@ -1064,6 +1064,7 @@ class Constituency:
             if self.check_surplus():
                 log_str += "There is a surplus for transfer.\n"
                 cand_with_transfer = self.candidate_highest_surplus()
+                surplus = cand_with_transfer.surplus
                 log_str += "Distribute {} surplus votes to eliminated candidates.\n".format(cand_with_transfer.name)
                 self.transfers(cand_with_transfer)
                 all_expenses = []
@@ -1080,8 +1081,15 @@ class Constituency:
                             all_expenses.append(False)
                     else:
                         if i is cand_with_transfer:
-                            i.votes_per_count.append(cand_with_transfer.surplus * -1)
+                            log_str += "Updating count details for {}.\n".format(i.name)
+                            if len(i.votes_per_count == self.count):
+                                i.votes_per_count[self.count - 1] = surplus * -1
+                                i.surplus = 0
+                            else:
+                                i.votes_per_count.append(surplus * -1)
+                                i.surplus = 0
                         else:
+                            log_str += "Updating count details for non-continuing candidate {}.\n".format(i.name)
                             i.votes_per_count.append(0)
                 if False not in all_expenses:
                     log_str += "All Final eliminated candidates have reached expenses quota.\n"
