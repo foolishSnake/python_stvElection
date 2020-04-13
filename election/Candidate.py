@@ -18,6 +18,7 @@ class Candidate:
         self.surplus = 0
         self.votes_per_count = []
         self.surplus_transferred = False
+        self.first_count_surplus = False
 
     @property
     def num_votes(self):

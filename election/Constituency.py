@@ -132,6 +132,11 @@ class Constituency:
                     self.available_cand_remove(i)
                     self.transfer_round += i.surplus
                     log_str += "{}, {}".format(i.name, "Quota meet.\n")
+
+        if self.count == 1:
+            for i in self.elected_cand:
+                if i.num_votes > self.quota:
+                    i.first_count_surplus = True
         self.write_log("Constituency.check_elected method.\n {}".format(log_str))
 
         return None
@@ -296,22 +301,22 @@ class Constituency:
     def transfers(self, cand):
         log_str = "transfers() Method.\n"
         return_value = False
-
+        cand_surplus = cand.surplus
         log_str += "There are surplus votes and it can be distributed.\n".format(cand.name)
-        if len(cand.votes_per_count) > 1:
+        if not cand.first_count_surplus:
             log_str += "The surplus was generated after the first count.\n"
             self.transfers_per_candidate(cand.transferred_votes[-1])
             trans_per_cand = self.transfer_candidate(self.transfer_votes, cand.surplus)
             vote_per_cand = self.proportion_amount(trans_per_cand, cand.surplus)
             self.proportion_transfer(cand.surplus, self.transfer_votes, vote_per_cand)
-            cand.votes_per_count.append(cand.surplus * -1)
+            cand.votes_per_count.append(cand_surplus * -1)
             cand.surplus = 0
             return_value = True
             if sum(vote_per_cand) < cand.surplus:
                 log_str += "Sum of valid transfers is less than that total surplus.\n"
                 self.non_transferable.append(cand.surplus - sum(vote_per_cand))
                 log_str += "Non-transferable votes={}.\n".format(cand.surplus - sum(vote_per_cand))
-                cand.votes_per_count.append(cand.surplus * -1)
+                cand.votes_per_count.append(cand_surplus * -1)
                 cand.surplus = 0
                 return_value = True
             self.transfer_votes = []
@@ -322,7 +327,7 @@ class Constituency:
             vote_per_cand = self.proportion_amount(trans_per_cand, cand.surplus)
             self.proportion_transfer(cand.surplus, self.transfer_votes, vote_per_cand)
             cand.surplus_transferred = True
-            cand.votes_per_count.append(cand.surplus * -1)
+            cand.votes_per_count.append(cand_surplus * -1)
             cand.surplus = 0
             self.transfer_votes = []
             return_value = True
@@ -428,7 +433,7 @@ class Constituency:
                     else:
                         self.candidates[index].last_transfer.append(j)
                         # elf.write_log("append a vote to {}".format(self.candidates[index].name))
-                    log_str += "{} gets {} transferred votes.\n".format(self.candidates[index].name, len(self.candidates[index].last_transfer))
+                log_str += "{} gets {} transferred votes.\n".format(self.candidates[index].name, len(self.candidates[index].last_transfer))
 
         # for index, i in enumerate(votes_per_cand):
         #     for j in range(int(i)):
@@ -609,11 +614,13 @@ class Constituency:
         :return: Boolean:
         """
         lowest_cand = self.lowest_votes(self.available_cand)
-        highest_continuing = self.highest_continuing(self.available_cand)
         second_lowest = self.second_lowest(lowest_cand)
+        highest_continuing = self.highest_continuing(self.available_cand)
+
         con_1 = self.total_surplus + highest_continuing.num_votes >= self.quota
         con_2 = lowest_cand.num_votes + self.total_surplus >= second_lowest.num_votes
-        con_3 = not lowest_cand.return_expenses and lowest_cand.num_votes + self.total_surplus >= self.expenses_quota
+        con_3 = lowest_cand.num_votes < self.expenses_quota <= lowest_cand.num_votes + self.total_surplus
+
         if con_1 or con_2 or con_3:
             self.write_log("Constituency.test_distribute_surplus method: Transfer surplus = {}".format("True"))
             return True
@@ -815,23 +822,33 @@ class Constituency:
             log_str += "Number of seats does not equal amount of seats to be filled.\n"
         if num_continuing == available_seats + 1:
             log_str += "Number of continuing candidates = number of seats to fill plus 1.\n"
-            second_lowest = self.second_lowest(lowest_cand)
-            if lowest_cand.num_votes + self.total_surplus < second_lowest.num_votes:
-                log_str += "The lowest continuing candidate votes plus available surplus is less than second lowest candidates votes.\n{} is excluded".format(
-                    lowest_cand.name)
-                lowest_cand.excluded = True
+            if len(self.available_cand) == 2:
+                high = self.highest_continuing(self.available_cand)
+                self.elected_cand.append(high)
+                self.available_cand_remove(high)
                 self.eliminated_cand.append(lowest_cand)
                 self.available_cand_remove(lowest_cand)
-                self.elected_remaining_cand()
-                num = len(self.elected_cand)
+                log_str += "Number of continuing candidates = 2 Highest cand {} is elected.\n".format(high)
                 self.write_log(log_str)
                 return True
             else:
-                log_str += "Lowest candidate {} plus surplus > Second lowest {} votes.\n".format(lowest_cand.name,
-                                                                                                 second_lowest.name)
-                log_str += "{} vote plus surplus of {} could bring them higher than {}.\n".format(lowest_cand.name,
-                                                                                                  self.test_distribute_surplus(),
-                                                                                                  second_lowest.name)
+                second_lowest = self.second_lowest(lowest_cand)
+                if lowest_cand.num_votes + self.total_surplus < second_lowest.num_votes:
+                    log_str += "The lowest continuing candidate votes plus available surplus is less than second lowest candidates votes.\n{} is excluded".format(
+                        lowest_cand.name)
+                    lowest_cand.excluded = True
+                    self.eliminated_cand.append(lowest_cand)
+                    self.available_cand_remove(lowest_cand)
+                    self.elected_remaining_cand()
+                    num = len(self.elected_cand)
+                    self.write_log(log_str)
+                    return True
+                else:
+                    log_str += "Lowest candidate {} plus surplus > Second lowest {} votes.\n".format(lowest_cand.name,
+                                                                                                     second_lowest.name)
+                    log_str += "{} vote plus surplus of {} could bring them higher than {}.\n".format(lowest_cand.name,
+                                                                                                      self.test_distribute_surplus(),
+                                                                                                      second_lowest.name)
 
         if available_seats == 1:
             log_str += "Available seats = 1\n"
@@ -839,10 +856,9 @@ class Constituency:
             number_votes_other = 0
             for i in self.available_cand:
                 if highest_candidate is i:
-                    pass
+                    continue
                 else:
                     number_votes_other += i.num_votes
-
             if number_votes_other + self.total_surplus < highest_candidate.num_votes:
                 log_str += "Highest continuing candidates votes are greater then the sun of all other continuing candidates plus any surplus not transferred.\n {} is elected.\n".format(
                     highest_candidate.name)
@@ -856,8 +872,8 @@ class Constituency:
                     self.available_cand_remove(i)
                     log_str += "{} are excluded.\n".format(i.name)
 
-            self.write_log(log_str)
-            return True
+                self.write_log(log_str)
+                return True
         self.write_log(log_str)
         return False
 
@@ -873,7 +889,6 @@ class Constituency:
             i.elected = True
             log_srt += "{} are elected.\n".format(i.name)
         self.available_cand = []
-        print("elected remaining length of elected = {}".format(len(self.elected_cand)))
         self.write_log(log_srt)
 
     def continuing_less_expenses(self):
@@ -1034,7 +1049,6 @@ class Constituency:
         """
 
         log_str = "count_ballot() Method\n"
-
         self.set_available_cand()
         self.set_quota()
         self.increase_count()
@@ -1042,12 +1056,13 @@ class Constituency:
         self.check_elected()
         log_str += "First count finished.\n"
         self.set_surplus()
+        self.write_Cand_file()
 
         while self.num_seats != len(self.elected_cand):
             log_str += "Test if we can fill remaining seats.\n"
             if self.fill_remaining_seats():
                 log_str += "Remaining seats can be filled"
-                # self.print_candidate_details()
+                self.write_Cand_file()
 
             else:
                 log_str += "Remaining seats can't be filled.\n"
@@ -1056,14 +1071,13 @@ class Constituency:
                 self.next_transfer()
                 self.candidate_votes_update()
                 self.check_elected()
+                self.write_Cand_file()
                 log_str += "Test if all seats are filled.\n"
                 if len(self.elected_cand) == self.num_seats:
                     log_str += "All seats are filled count has finished.\n"
                     break
                 log_str += "There are still seats to fill, count continues.\n"
                 self.set_surplus()
-        print("Number of available candidates {}".format(len(self.available_cand)))
-
         log_str += "Writing csv file called \"{}_{}_{}.csv\"\n".format(self.name, self.date.get("Year"), self.election_type)
         self.results_csv()
         log_str += "Constituency {} count has finished.\n\n".format(self.name)
@@ -1117,3 +1131,29 @@ class Constituency:
                 break
 
         self.write_log(log_str)
+
+
+    def write_Cand_file(self):
+        for i in self.candidates:
+            file = "Count Number = {}".format(self.count)
+            file += "-----------------------------------------------------------------------------\n"
+            file += "Name: {}\n".format(i.name)
+            file += "Number first Votes: {}\n".format(len(i.first_votes))
+            file +="Number last transferred votes: {}\n".format(i.votes_per_count[-1])
+            file += "The total number of votes is: {}\n".format(i.num_votes)
+            # print("The total transferred votes is: {}".format(sum(i.transferred_votes)))
+            file += "Number of counts: {}, Sum of votes per count {}\n".format(len(i.votes_per_count),
+                                                                           sum(i.votes_per_count))
+            file += "Are they elected: {}\n".format(i.elected)
+            file += "Are they eliminated: {}\n".format(i.excluded)
+            file += "Do they get expenses back: {}\n".format(i.return_expenses)
+            file += "Current surplus: {}\n".format(i.surplus)
+            file += "Have they had a surplus transferred: {}\n".format(i.surplus_transferred)
+            file += "Amount of available transfers: {}\n".format(len(self.transfer_votes))
+            file +="-----------------------------------------------------------------------------\n\n"
+
+            try:
+                with open("dwest.txt", 'a') as dw:
+                    dw.write("{}\n".format(file))
+            except FileNotFoundError as file_error:
+                print("Could not access the log file " + str(file_error))
