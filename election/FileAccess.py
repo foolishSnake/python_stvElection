@@ -74,8 +74,8 @@ class FileAccess:
     def read_election_json(self, json_file_name):
         """
         Reads a json file for the ballot for a constituency. Uses the information create a Constituency
-        odject using the data.
-        :param json_file: json file with constituency and ballot data
+        object using the data.
+        :param json_file_name: json file with constituency and ballot data
         :return: constituency: Constituency object populated with the json data
         """
 

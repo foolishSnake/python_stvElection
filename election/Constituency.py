@@ -53,7 +53,7 @@ class Constituency:
 
     def available_cand_remove(self, cand):
         """
-        Removes a condidate from the available_cand list
+        Removes a candidate from the available_cand list
         :param cand: A reference for a Candidate object
         :return:
         """
@@ -447,8 +447,8 @@ class Constituency:
     def proportion_amount(self, votes_per_cand, surplus):
         """
         Takes a list of the votes_per_cand, this a list of floats values, these get rounded to the nearest
-        interger. If the rounding leaves extra votes these are given to the candidate with the highest factor
-        at the start. If there is a matching factor we give it to the candidate with the higest votes.
+        integer. If the rounding leaves extra votes these are given to the candidate with the highest factor
+        at the start. If there is a matching factor we give it to the candidate with the hhighestvotes.
         If there is a match there we draw lots to decide who gets the vote.
         :param votes_per_cand:
         :param surplus:
@@ -1028,10 +1028,9 @@ class Constituency:
             log_str += "Test if we can fill remaining seats.\n"
             final_cand = copy.deepcopy(self.available_cand)
             if self.fill_remaining_seats():
-                # log_str += "Remaining seats can be filled"
-                # self.set_quota()
+                log_str += "Remaining seats can be filled"
                 log_str += "Some candidate might get expenses back, transfer surplus votes.\n"
-                # self.final_vote_transfer(final_cand)
+                self.final_vote_transfer(final_cand)
             else:
                 log_str += "Remaining seats can't be filled.\n"
                 self.increase_count()
@@ -1062,6 +1061,7 @@ class Constituency:
         self.set_surplus()
         if not self.check_surplus():
             log_str += "There are no surplus votes for transfer.\n"
+            self.write_log(log_str)
             return
         else:
             for i in final_count_cand:
@@ -1076,6 +1076,7 @@ class Constituency:
                     not_expenses = True
             if not not_expenses:
                 log_str = "All candidate have reached expenses quota.\n"
+                self.write_log(log_str)
                 return
             else:
                 self.increase_count()
@@ -1086,18 +1087,11 @@ class Constituency:
                     surplus = cand_with_transfer.surplus
                     log_str += "Distribute {} surplus votes to eliminated candidates.\n".format(cand_with_transfer.name)
                     self.transfers(cand_with_transfer)
-                    all_expenses = []
                     for i in self.candidates:
                         if i in final_count_cand:
                             i.votes_per_count.append(len(i.last_transfer))
                             i.transferred_votes.append(copy.deepcopy(i.last_transfer))
                             i.last_transfer = []
-                            # if i.num_votes >= self.expenses_quota:
-                            #     log_str += "{} has reached expenses quota.\n".format(i.name)
-                            #     all_expenses.append(True)
-                            # else:
-                            #     log_str += "{} has not reached expenses quota.\n".format(i.name)
-                            #     all_expenses.append(False)
                         else:
                             if i is cand_with_transfer:
                                 log_str += "Updating count details for {}.\n".format(i.name)
@@ -1110,7 +1104,9 @@ class Constituency:
                             else:
                                 log_str += "Updating count details for non-continuing candidate {}.\n".format(i.name)
                                 i.votes_per_count.append(0)
+                    self.check_elected()
+                else:
+                    log_str += "There are no more surplus votes to transfer.\n"
+                    self.write_log(log_str)
+                    return
 
-
-        self.write_log(log_str)
-        return

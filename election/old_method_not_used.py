@@ -130,9 +130,9 @@ def precent_transfers(self, candidate):
                                                                                               self.num_seats))
             csv.writelines("\n")
             count_num_str = ""
-            for i in range(self.count):
-                if i != self.count - 1:
-                    count_num_str += "Count {},".format(i + 1)
+            for j in range(self.count):
+                if j != self.count - 1:
+                    count_num_str += "Count {},".format(j + 1)
                 else:
                     count_num_str += "Total,"
 
@@ -141,17 +141,17 @@ def precent_transfers(self, candidate):
                 cand_total = ""
                 non_trans = "Non-transferrable papers not effective,"
                 sum_votes = 0
-            for i in self.candidates:
-                cand_votes += "{} ({})".format(i.name, i.party)
-                cand_total += "{} Total:".format(i.name)
-                for index, j in enumerate(i.votes_per_count):
+            for j in self.candidates:
+                cand_votes += "{} ({})".format(j.name, j.party)
+                cand_total += "{} Total:".format(j.name)
+                for index, j in enumerate(j.votes_per_count):
                     if index == 0:
                         sum_votes = j
                     else:
                         sum_votes += j
 
-                    if index == len(i.votes_per_count) - 1:
-                        cand_votes += ",{}, {}".format(j, sum(i.votes_per_count))
+                    if index == len(j.votes_per_count) - 1:
+                        cand_votes += ",{}, {}".format(j, sum(j.votes_per_count))
                         cand_total += ",{}".format(sum_votes)
                     else:
                         cand_votes += ",{}".format(j)
@@ -163,15 +163,15 @@ def precent_transfers(self, candidate):
                 sum_votes = 0
 
                 non_transferable = self.num_non_transferable()
-                for i in non_transferable:
+                for j in non_transferable:
                     non_trans += "{},".format(non_transferable)
                 csv.writelines("{}\n".format(cand_total))
 
 
                 csv.writelines("\n")
                 csv.writelines("Elected Candidates\n")
-                for i in self.elected_cand:
-                    csv.writelines("{} {}\n".format(i.name, i.party))
+                for j in self.elected_cand:
+                    csv.writelines("{} {}\n".format(j.name, j.party))
 
         self.write_log(log_str)
 
