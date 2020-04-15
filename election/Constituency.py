@@ -1028,11 +1028,10 @@ class Constituency:
             log_str += "Test if we can fill remaining seats.\n"
             final_cand = copy.deepcopy(self.available_cand)
             if self.fill_remaining_seats():
-                log_str += "Remaining seats can be filled"
-                self.set_quota()
-                if self.final_surplus_transfer(final_cand):
-                    print()
-
+                # log_str += "Remaining seats can be filled"
+                # self.set_quota()
+                log_str += "Some candidate might get expenses back, transfer surplus votes.\n"
+                # self.final_vote_transfer(final_cand)
             else:
                 log_str += "Remaining seats can't be filled.\n"
                 self.increase_count()
@@ -1053,75 +1052,65 @@ class Constituency:
         self.write_log(log_str)
 
     def final_vote_transfer(self, final_count_cand):
+        """
+        Take a list of all candidates from final count. Test if any could get expenses back from the transfer
+        of the surplus.
+        :param final_count_cand:
+        :return:
+        """
         log_str = "final_vote_transfer() Method\n"
-
-        for i in final_count_cand:
-            if i not in self.elected_cand:
-                self.available_cand.append(i)
-        log_str += "Added last eliminated candidates into self.available_cand List.\n"
+        self.set_surplus()
+        if not self.check_surplus():
+            log_str += "There are no surplus votes for transfer.\n"
+            return
+        else:
+            for i in final_count_cand:
+                if i not in self.elected_cand:
+                    self.available_cand.append(i)
+            log_str += "Added last eliminated candidates into self.available_cand List.\n"
 
         while True:
-            self.increase_count()
-            if self.check_surplus():
-                log_str += "There is a surplus for transfer.\n"
-                cand_with_transfer = self.candidate_highest_surplus()
-                surplus = cand_with_transfer.surplus
-                log_str += "Distribute {} surplus votes to eliminated candidates.\n".format(cand_with_transfer.name)
-                self.transfers(cand_with_transfer)
-                all_expenses = []
-                for i in self.candidates:
-                    if i in final_count_cand:
-                        i.votes_per_count.append(len(i.last_transfer))
-                        i.transferred_votes.append(copy.deepcopy(i.last_transfer))
-                        i.last_transfer = []
-                        if i.num_votes >= self.expenses_quota:
-                            log_str += "{} has reached expenses quota.\n".format(i.name)
-                            all_expenses.append(True)
-                        else:
-                            log_str += "{} has not reached expenses quota.\n".format(i.name)
-                            all_expenses.append(False)
-                    else:
-                        if i is cand_with_transfer:
-                            log_str += "Updating count details for {}.\n".format(i.name)
-                            if len(i.votes_per_count == self.count):
-                                i.votes_per_count[self.count - 1] = surplus * -1
-                                i.surplus = 0
-                            else:
-                                i.votes_per_count.append(surplus * -1)
-                                i.surplus = 0
-                        else:
-                            log_str += "Updating count details for non-continuing candidate {}.\n".format(i.name)
-                            i.votes_per_count.append(0)
-                if False not in all_expenses:
-                    log_str += "All Final eliminated candidates have reached expenses quota.\n"
-                    break
+            not_expenses = False
+            for i in final_count_cand:
+                if not i.return_expenses:
+                    not_expenses = True
+            if not not_expenses:
+                log_str = "All candidate have reached expenses quota.\n"
+                return
             else:
-                log_str += "There is no more surplus to transfer.\n"
-                break
+                self.increase_count()
+                self.set_surplus()
+                if self.check_surplus():
+                    log_str += "There is a surplus for transfer.\n"
+                    cand_with_transfer = self.candidate_highest_surplus()
+                    surplus = cand_with_transfer.surplus
+                    log_str += "Distribute {} surplus votes to eliminated candidates.\n".format(cand_with_transfer.name)
+                    self.transfers(cand_with_transfer)
+                    all_expenses = []
+                    for i in self.candidates:
+                        if i in final_count_cand:
+                            i.votes_per_count.append(len(i.last_transfer))
+                            i.transferred_votes.append(copy.deepcopy(i.last_transfer))
+                            i.last_transfer = []
+                            # if i.num_votes >= self.expenses_quota:
+                            #     log_str += "{} has reached expenses quota.\n".format(i.name)
+                            #     all_expenses.append(True)
+                            # else:
+                            #     log_str += "{} has not reached expenses quota.\n".format(i.name)
+                            #     all_expenses.append(False)
+                        else:
+                            if i is cand_with_transfer:
+                                log_str += "Updating count details for {}.\n".format(i.name)
+                                if len(i.votes_per_count) == self.count:
+                                    i.votes_per_count.append(surplus * -1)
+                                    i.surplus = 0
+                                else:
+                                    i.votes_per_count.append(surplus * -1)
+                                    i.surplus = 0
+                            else:
+                                log_str += "Updating count details for non-continuing candidate {}.\n".format(i.name)
+                                i.votes_per_count.append(0)
+
 
         self.write_log(log_str)
-
-    def write_Cand_file(self):
-        for i in self.candidates:
-            file = "Count Number = {}".format(self.count)
-            file += "-----------------------------------------------------------------------------\n"
-            file += "Name: {}\n".format(i.name)
-            file += "Number first Votes: {}\n".format(len(i.first_votes))
-            file += "Number last transferred votes: {}\n".format(i.votes_per_count[-1])
-            file += "The total number of votes is: {}\n".format(i.num_votes)
-            # print("The total transferred votes is: {}".format(sum(i.transferred_votes)))
-            file += "Number of counts: {}, Sum of votes per count {}\n".format(len(i.votes_per_count),
-                                                                               sum(i.votes_per_count))
-            file += "Are they elected: {}\n".format(i.elected)
-            file += "Are they eliminated: {}\n".format(i.excluded)
-            file += "Do they get expenses back: {}\n".format(i.return_expenses)
-            file += "Current surplus: {}\n".format(i.surplus)
-            file += "Have they had a surplus transferred: {}\n".format(i.surplus_transferred)
-            file += "Amount of available transfers: {}\n".format(len(self.transfer_votes))
-            file += "-----------------------------------------------------------------------------\n\n"
-
-            try:
-                with open("dwest.txt", 'a') as dw:
-                    dw.write("{}\n".format(file))
-            except FileNotFoundError as file_error:
-                print("Could not access the log file " + str(file_error))
+        return

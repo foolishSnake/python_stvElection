@@ -174,3 +174,63 @@ def precent_transfers(self, candidate):
                     csv.writelines("{} {}\n".format(i.name, i.party))
 
         self.write_log(log_str)
+
+    def final_surplus_transfer(self, candidates):
+        """
+        Transfers available surplus to candidates not elected in the fill_remaining_seat method.
+        Will transfer all surplus until every candidate meet expenses quota or there is no more suplus to transfer.
+        :param candidates:
+        :return:
+        """
+        log_str = "final_surplus_transfer() method.\n"
+
+        for i in candidates:
+            if candidates
+
+        while True:
+            self.set_surplus()
+            if self.check_surplus():
+                log_str += "There is a surplus for transfer.\n"
+                all_expenses = True
+                self.increase_count()
+                high_surplus = self.candidate_highest_surplus()
+                self.transfers(high_surplus)
+                self.check_elected()
+                for i in candidates:
+                    if not i.return_expenses:
+                        all_expenses = False
+                if all_expenses:
+                    log_str += "All candidates have got their expenses back.\n"
+                    return
+                else:
+                    log_str += "Not all candidates have got there expenses back.\n"
+            else:
+                log_str += "There is no more surplus for transfer.\n"
+                return
+
+        self.write_log(log_str)
+    def write_Cand_file(self):
+        for i in self.candidates:
+            file = "Count Number = {}".format(self.count)
+            file += "-----------------------------------------------------------------------------\n"
+            file += "Name: {}\n".format(i.name)
+            file += "Number first Votes: {}\n".format(len(i.first_votes))
+            file += "Number last transferred votes: {}\n".format(i.votes_per_count[-1])
+            file += "The total number of votes is: {}\n".format(i.num_votes)
+            # print("The total transferred votes is: {}".format(sum(i.transferred_votes)))
+            file += "Number of counts: {}, Sum of votes per count {}\n".format(len(i.votes_per_count),
+                                                                               sum(i.votes_per_count))
+            file += "Are they elected: {}\n".format(i.elected)
+            file += "Are they eliminated: {}\n".format(i.excluded)
+            file += "Do they get expenses back: {}\n".format(i.return_expenses)
+            file += "Current surplus: {}\n".format(i.surplus)
+            file += "Have they had a surplus transferred: {}\n".format(i.surplus_transferred)
+            file += "Amount of available transfers: {}\n".format(len(self.transfer_votes))
+            file += "-----------------------------------------------------------------------------\n\n"
+
+            try:
+                with open("dwest.txt", 'a') as dw:
+                    dw.write("{}\n".format(file))
+            except FileNotFoundError as file_error:
+                print("Could not access the log file " + str(file_error))
+
