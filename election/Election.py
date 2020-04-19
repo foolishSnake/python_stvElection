@@ -35,5 +35,8 @@ json = ["DublinNorth2002.json", "DublinWest2002.json", "Meath2002.json"]
 election = Election("General", {"Day": 17, "Month": 5, "Year": 2002})
 
 election.read_json(json)
+# for i in election.constituency:
+#     i.count_ballot()
+
 for i in election.constituency:
-    i.count_ballot()
+    election.file_access.create_smart_contract(i)

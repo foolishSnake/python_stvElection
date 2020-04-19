@@ -128,3 +128,66 @@ class FileAccess:
                 log.write("{} @ {} \n".format(message, log_date))
         except FileNotFoundError as file_error:
             print("Could not access the log file " + str(file_error))
+
+    def create_smart_contract(self, constituency):
+        file_name = "{}_{}.sol".format(constituency.name, constituency.date.get("Year"))
+        param = ""
+        vote_value = ""
+        contract = "pragma solidity ^0.5.0;\n"
+
+        contract += "/// @title {}\n".format(file_name)
+        contract += "/// contract version 0.2\n"
+        contract += "/// @author Phillip Hourigan\n"
+        contract += "/// Student Number D15124474\n"
+        contract += "/// DT249/4\n"
+        contract += "\ncontract Election {\n\tuint256 public vote_count;\n\tuint8 public candidate_count;\n\tstring public constituency;\n"
+
+        contract += "\nconstructor () public {\n"
+        contract += "    string constituency = {};\n".format(constituency.name)
+        contract += "    uint8 day = {};\n".format(constituency.date.get("Day"))
+        contract += "    uint8 month = {};\n".format(constituency.date.get("Month"))
+        contract += "    uint8 year = {};\n".format(constituency.date.get("Year"))
+        contract += "    vote_count = 0;\n"
+        contract += "    candidate_count = {};\n".format(len(constituency.candidates))
+        for i in constituency.candidates:
+            contract += "    cand_array.push(candidate({}, {}, {}, {}));\n".format(i.cand_id, i.name, i.party, i.cand_index)
+        contract += "    }\n\n"
+        contract += "    struct vote {\n"
+        for index, i in enumerate(constituency.candidates):
+            contract += "       uint8 _c{};\n".format(index)
+
+        contract += "       uint256 _vote_id;\n"
+
+        contract += "    }\n\n"
+
+        contract += "    struct candidate {\n"
+        contract += "        string _candidate_id;\n"
+        contract += "        string _candidate_name;\n"
+        contract += "        string _candidate_party;\n"
+        contract += "        uint8 _vote_index;\n"
+        contract += "    }\n\n"
+
+        contract += "    candidate[] public cand_array;\n"
+        contract += "    vote[] public ballot_array;\n\n"
+
+
+        for index, i in enumerate(constituency.candidates):
+            if index == 0:
+                param += "uint8 _c0"
+                vote_value += "_c0"
+            else:
+                param +=" ,uint8 _c{}".format(index)
+                vote_value += ",_c{}".format(index)
+        contract += "    function setVote({}) public {}\n".format(param, "{")
+        contract += "    vote_count ++;\n"
+        contract += "    ballot_array.push(vote({}, vote_count));\n".format(vote_value)
+        contract += "    }\n\n"
+        contract += "}\n"
+
+
+        try:
+            with open(file_name, 'a') as smart_contract:
+                smart_contract.write("{}\n".format(contract))
+        except FileNotFoundError as file_error:
+            print("Could not access the log file " + str(file_error))
+
