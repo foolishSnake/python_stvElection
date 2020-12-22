@@ -9,7 +9,8 @@ class Election2002:
     """
     DATE = {"Day": 17, "Month": 5, "Year": 2002}
 
-    def dublin_north(self):
+    @staticmethod
+    def dublin_north():
         """
         Creates a list of Candidate objects for the Dublin North 2002 election.
         Reads a file to creates a list of lists for ecah ballot cast in the election.
@@ -36,7 +37,8 @@ class Election2002:
 
         return [cand_d_n, dublin_n_ballot, num_seats]
 
-    def dublin_west(self):
+    @staticmethod
+    def dublin_west():
         """
         Creates a list of Candidate objects for the Dublin North 2002 election.
         Reads a file to creates a list of lists for ecah ballot cast in the election.
@@ -60,7 +62,8 @@ class Election2002:
 
         return [cand_d_west, dublin_w_ballot, num_seats]
 
-    def meath(self):
+    @staticmethod
+    def meath():
         num_seats = 5
         cand_meath = []
         cand_meath.append(Candidate("Demp", "Noel Dempsey", "Fianna Fáil", 0))
@@ -102,10 +105,29 @@ class Election2002:
         print("Writing \"Meath 2002\" json file")
         file_access.write_election_json("General", "Meath", meath[0], self.DATE, meath[1], meath[2])
 
+    def d_north_shuffle_json(self):
+        file_access = FileAccess()
+        d_n = self.dublin_north()
+        print("Writing \"Dublin North 2002\" json file")
+        file_access.write_election_json_shuffle("General", "Dublin North Shuffle", d_n[0], self.DATE, d_n[1], d_n[2], 100)
+
+    def d_west_shuffle_json(self):
+        file_access = FileAccess()
+        d_w = self.dublin_west()
+        print("Writing \"Dublin West 2002\" json file")
+        file_access.write_election_json_shuffle("General", "Dublin West Shuffle", d_w[0], self.DATE, d_w[1], d_w[2], 100)
+
+    def meath_shuffle_json(self):
+        file_access = FileAccess()
+        meath = self.meath()
+        print("Writing \"Meath 2002\" json file")
+        file_access.write_election_json_shuffle("General", "Meath Shuffle", meath[0], self.DATE, meath[1], meath[2], 100)
 
 election2002 = Election2002()
 
 
 # election2002.d_north_json()
 # election2002.d_west_json()
-election2002.meath_json()
+# election2002.d_north_shuffle_json()
+election2002.d_west_shuffle_json()
+election2002.meath_shuffle_json()
