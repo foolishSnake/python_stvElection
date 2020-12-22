@@ -8,6 +8,7 @@
 from Candidate import Candidate
 from Constituency import Constituency
 import datetime as date
+import random
 # from Election2002 import *
 # import copy
 
@@ -47,6 +48,48 @@ class FileAccess:
         """
         cand_list = []
         int_ballot = self.old_ballot_str(ballot, candidates)
+
+        for index, cand in enumerate(candidates):
+            temp = {}
+            temp["Ref"] = cand.cand_id
+            temp["Name"] = cand.name
+            temp["Party"] = cand.party
+            temp["Index"] = index
+
+            cand_list.append(temp)
+
+        election_dic = {}
+        election_dic["Election_Type"] = election_type
+        election_dic["Date"] = date
+        election_dic["Constituency"] = constituency
+        election_dic["Number of Seats"] = num_seats
+        election_dic["Candidate"] = cand_list
+        election_dic["Ballot"] = int_ballot
+
+
+        json_file_name = format(constituency.replace(" ", "") + str(date.get("Year")) + ".json")
+
+        with open(json_file_name, 'w') as json_file:
+            json.dump(election_dic, json_file)
+
+    def write_election_json_shuffle(self, election_type, constituency, candidates, date, ballot, num_seats, num_shuffle):
+        """
+        Write a json file with the election details, converts the ballot information from a str to int values
+        :param election_type: The election type General, Local etc.
+        :param constituency: The name of the constituency
+        :param candidates: A list of all the candidate objects
+        :param date: A dic for the date format Day, Month, Year
+        :param ballot: A list of the the ballot papers
+        :param num_seats: Int for the number od seats in the constituency
+        :param num_shuffle: Int the number of times to shuffle the list
+        :return: None
+        """
+        cand_list = []
+        int_ballot = self.old_ballot_str(ballot, candidates)
+
+        for i in range(num_shuffle):
+            random.shuffle(int_ballot)
+
 
         for index, cand in enumerate(candidates):
             temp = {}
