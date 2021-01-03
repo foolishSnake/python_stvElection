@@ -1,3 +1,5 @@
+
+
 class Candidate:
 
     def __init__(self, cand_id, name, party, cand_index):
@@ -6,7 +8,7 @@ class Candidate:
         :rtype: object
         """
         self.cand_id = cand_id
-        self.cand_index = cand_index
+        self.cand_index = int(cand_index)
         self.name = name
         self.party = party
         self.elected = False
@@ -19,6 +21,7 @@ class Candidate:
         self.votes_per_count = []
         self.surplus_transferred = False
         self.first_count_surplus = False
+        self.weighted_total = 0
 
     @property
     def num_votes(self):

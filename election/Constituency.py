@@ -1,9 +1,7 @@
-from Candidate import *
-import datetime as time
-from random import randrange
-from math import modf
 import copy
-from operator import attrgetter
+import datetime as time
+from math import modf
+from random import randrange
 
 
 class Constituency:
@@ -81,7 +79,7 @@ class Constituency:
     # Keep this
     def first_count(self):
         """
-        Does the first count. Reads the ballot attribute, copies a vote for each first preference to the relevant
+        The first count. Reads the ballot attribute, copies a vote for each first preference to the relevant
          candidate. Appends the number of first votes to the votes_per_count attribute.
         :return: None
         """
@@ -171,7 +169,7 @@ class Constituency:
         :return: A list of Candidate/s object/s with the lowest number of votes.
         """
         log_str = "Constituency.lowest_per_count method Candidate with lowest votes.\n"
-        for i in range(self.count):
+        for i in range(self.count - 1):
             sorted_cand = sorted(cand, key=lambda candidate: candidate.votes_per_count[i])
             if sorted_cand[0].votes_per_count[i] < sorted_cand[1].votes_per_count[i]:
                 self.write_log(
@@ -218,7 +216,7 @@ class Constituency:
         :return: candidate object
         """
         highest = self.highest_candidate(candidates)
-        self.write_log("Constituency.highest_continuing\n Highest Continuing is {}".format(highest.name))
+        # self.write_log("Constituency.highest_continuing\n Highest Continuing is {}".format(highest.name))
         return highest
 
     def highest_candidate(self, candidates):
@@ -246,18 +244,17 @@ class Constituency:
 
             for i in range(self.count):
                 sorted_equal = sorted(equal_cand, key=lambda candidate: candidate.votes_per_count[i], reverse=True)
-            if sorted_equal[0].votes_per_count[i] > sorted_equal[1].votes_per_count[i]:
-                log_str += "Candidate {} has the highest votes of {} for count {}".format(sorted_equal[0].name,
-                                                                                          sorted_equal[
-                                                                                              0].votes_per_count[i],
-                                                                                          i + 1)
+                if sorted_equal[0].votes_per_count[i] > sorted_equal[1].votes_per_count[i]:
+                    log_str += "Candidate {} has the highest votes of {} for count {}".format(sorted_equal[0].name, sorted_equal[0].votes_per_count[i],i + 1)
                 self.write_log(log_str)
-                return [sorted_equal[0]]
+                return sorted_equal[0]
             else:
-                cand = self.draw_lots(sorted_equal)
-                log_str += " Draw lot to find highest: Candidate {}".format(cand.name)
-                self.write_log(log_str)
-                return cand
+                for i in range(self.count - 1):
+                    sorted_equal = sorted(equal_cand, key=lambda candidate: candidate.votes_per_count[i], reverse=True)
+                    cand = self.draw_lots(sorted_equal)
+                    log_str += " Draw lot to find highest: Candidate {}".format(cand.name)
+                    self.write_log(log_str)
+                    return cand
 
     def transfers(self, cand):
         log_str = "transfers() Method.\n"
@@ -637,7 +634,8 @@ class Constituency:
         for i in self.available_cand:
             lowest_cand = self.lowest_votes(sorted_cand)
             eliminate_list.append(lowest_cand)
-            sorted_cand.remove(lowest_cand)
+            if lowest_cand in sorted_cand:
+                sorted_cand.remove(lowest_cand)
 
         # Test if the next lowest candidate should be excluded.
         for index, i in enumerate(eliminate_list):
@@ -816,6 +814,7 @@ class Constituency:
         if available_seats == 1:
             log_str += "Available seats = 1\n"
             highest_candidate = self.highest_continuing(self.available_cand)
+
             number_votes_other = 0
             for i in self.available_cand:
                 if highest_candidate is i:
@@ -1110,3 +1109,14 @@ class Constituency:
                     self.write_log(log_str)
                     return
 
+    def weighted_vote(self):
+        """
+        Does a weighted count of the votes on the constituency.ballot list
+        """
+        for i in self.ballot:
+            for index, j in enumerate(i):
+                cand = [x for x in self.candidates if x.cand_index == index][0]
+                if j == 0:
+                    cand.weighted_total += len(self.candidates)
+                else:
+                    cand.weighted_total += j

@@ -127,10 +127,16 @@ class FileAccess:
         with open(json_file_name) as json_file:
             data = json.load(json_file)
             constituency.name = data["Constituency"]
-            constituency.election_type = data["Election_Type"]
+            if "Election_Type" in data:
+                constituency.election_type = data["Election_Type"]
+            else:
+                constituency.election_type = data["ElectionType"]
             constituency.date = data["Date"]
             constituency.ballot = data["Ballot"]
-            constituency.num_seats = data["Number of Seats"]
+            if "Number of Seats" in data:
+                constituency.num_seats = data["Number of Seats"]
+            else:
+                   constituency.num_seats = data["NumberOfSeats"]
             cand_list = []
             for cand in data["Candidate"]:
                 cand_list.append(Candidate(cand["Ref"], cand["Name"], cand["Party"], cand["Index"]))
@@ -244,3 +250,56 @@ class FileAccess:
         except FileNotFoundError as file_error:
             print("Could not access the log file " + str(file_error))
 
+    def write_weighted_total(self, constituency):
+        """
+        Writes a csv file for the sorted candidates using a weighted total.
+        """
+        elected = "Lower is better: Candidates 1 to {} Elected".format(constituency.num_seats)
+        heading = "{}: {}: {}: {}".format(constituency.name, constituency.date.get("Year"), "Weighted Total", elected)
+        file_name = "{}_{}_Weighted.csv".format(constituency.name.replace(" ", ""), constituency.date.get("Year"))
+        sotred_cands = sorted(constituency.candidates, key=lambda x: x.weighted_total)
+
+        try:
+            with open(file_name, 'a', newline='') as csv:
+                csv.write("{}\n".format(heading))
+                csv.write("{},{},{}\n".format("", "Candidate Name / Party", "Total Weighted Votes"))
+                for index, i in enumerate(sotred_cands):
+                    csv.write("{},{},{}\n".format(index + 1, "{} ({})".format(i.name, i.party), i.weighted_total))
+        except FileNotFoundError as file_error:
+            print("Could not access the log file " + str(file_error))
+
+    def read_election_json_net(self, json_file_name):
+        """
+        Reads a json file for the ballot for a constituency. Uses the information create a Constituency
+        object using the data.
+        :param json_file_name: json file with constituency and ballot data
+        :return: constituency: Constituency object populated with the json data
+        """
+
+        constituency = Constituency()
+        # candidate = Candidate
+        with open(json_file_name) as json_file:
+            data = json.load(json_file)
+
+            constituency.name = data["Constituency"]
+            if "Election_Type" in data:
+                constituency.election_type = data["Election_Type"]
+            else:
+                constituency.election_type = data["ElectionType"]
+            constituency.date = data["Date"]
+            print(type(data["Date"]))
+            constituency.ballot = data["Ballot"]
+            if "Number of Seats" in data:
+                constituency.num_seats = data["Number of Seats"]
+            else:
+                   constituency.num_seats = data["NumberOfSeats"]
+            cand_list = []
+            for cand in data["Candidate"]:
+                newJson = json.load(cand)
+                cand_list.append(Candidate(newJson["Ref"], newJson["Name"], newJson["Party"], newJson["Index"]))
+            constituency.candidates = cand_list
+        return constituency
+
+# FileAccess = FileAccess();
+# const = FileAccess.read_election_json_net("Earth2021.json")
+# print(const.name)
